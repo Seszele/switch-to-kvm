@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using SwitchToKVM.Core;
+using SwitchToKVM.Core.Ipc;
 
 namespace SwitchToKVM.App;
 
@@ -19,7 +20,11 @@ sealed class Program
         }
 
         using var instance = new Mutex(true, @"Local\SwitchToKVM", out var isFirstInstance);
-        if (!isFirstInstance) return;
+        if (!isFirstInstance)
+        {
+            PipeClient.SendAsync(AppPipe.Name, AppPipe.Settings, TimeSpan.FromSeconds(2)).GetAwaiter().GetResult();
+            return;
+        }
 
         AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Write($"Crashed: {e.ExceptionObject}");
         TaskScheduler.UnobservedTaskException += (_, e) => Log.Write($"Background task failed: {e.Exception}");

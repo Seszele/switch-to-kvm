@@ -2,11 +2,13 @@ using System.Globalization;
 using System.Text.Json;
 using SwitchToKVM.Core;
 using SwitchToKVM.Core.Configuration;
+using SwitchToKVM.Core.Ipc;
 using SwitchToKVM.Core.Monitors.Windows;
 using SwitchToKVM.Core.Usb.Windows;
 
 return args switch
 {
+    [AppPipe.Status or AppPipe.Here or AppPipe.Away or AppPipe.Reload or AppPipe.Settings] => SendToApp(args[0]),
     ["monitors"] => ListMonitors(),
     ["set", var model, var value] => SetInput(model, value),
     ["watch", var vendorId, var productId] => Watch(vendorId, productId),
@@ -71,11 +73,19 @@ static int SetConfig(string vendorId, string productId, string model, string her
 
     ConfigFile.Save(new Config(vid, pid, model, hereInput, awayInput), AppPaths.Config);
     Console.WriteLine($"Saved {AppPaths.Config}");
+
+    var response = Send(AppPipe.Reload, TimeSpan.FromMilliseconds(500));
+    if (response is not null) Console.WriteLine($"App: {response.Message}");
     return 0;
 }
 
 static int Run()
 {
+    if (Send(AppPipe.Status, TimeSpan.FromMilliseconds(500)) is not null)
+    {
+        Console.Error.WriteLine("The SwitchToKVM app is running, and both would switch the monitor. Exit the app first, or use 'here' and 'away'.");
+        return 1;
+    }
     if (!TryLoadConfig(out var config)) return 1;
 
     Console.WriteLine($"Looking for monitor {config.MonitorModel}...");
@@ -93,6 +103,21 @@ static int Run()
     Console.ReadLine();
     return 0;
 }
+
+static int SendToApp(string command)
+{
+    var response = Send(command, TimeSpan.FromSeconds(1));
+    if (response is null)
+    {
+        Console.Error.WriteLine("The SwitchToKVM app isn't running.");
+        return 1;
+    }
+    (response.Ok ? Console.Out : Console.Error).WriteLine(response.Message);
+    return response.Ok ? 0 : 1;
+}
+
+static PipeResponse? Send(string command, TimeSpan timeout) =>
+    PipeClient.SendAsync(AppPipe.Name, command, timeout).GetAwaiter().GetResult();
 
 static bool TryLoadConfig(out Config config)
 {
@@ -135,12 +160,21 @@ static bool TryParseHex(string value, out byte result)
 static int Usage()
 {
     Console.WriteLine("""
-        Usage:
+        Talk to the running app:
+          status         show what the app is doing
+          here           switch the monitor to this computer now
+          away           switch the monitor to the other computer now
+          reload         re-read the config file
+          settings       open the settings window
+
+        Config:
+          config
+          config set <vendor id> <product id> <model> <here input> <away input>
+
+        Developer tools (work without the app):
           monitors
           set <model> <hex input>
           watch <vendor id> <product id>
-          config
-          config set <vendor id> <product id> <model> <here input> <away input>
           run
         """);
     return 1;

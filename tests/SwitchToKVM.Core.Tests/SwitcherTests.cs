@@ -84,6 +84,20 @@ public class SwitcherTests
     }
 
     [Fact]
+    public void SwitchesOnRequest()
+    {
+        using var switcher = new Switcher(_watcher, () => _monitor, Here, Away, TimeSpan.Zero);
+        var reports = new List<(byte, bool)>();
+        switcher.Switched += (input, ok) => reports.Add((input, ok));
+
+        Assert.True(switcher.Switch(toHere: false));
+        Assert.True(switcher.Switch(toHere: true));
+
+        Assert.Equal([Away, Here], _monitor.Inputs);
+        Assert.Equal([(Away, true), (Here, true)], reports);
+    }
+
+    [Fact]
     public void ReportsFailureWhenNoMonitor()
     {
         using var switcher = new Switcher(_watcher, () => null, Here, Away, TimeSpan.Zero);

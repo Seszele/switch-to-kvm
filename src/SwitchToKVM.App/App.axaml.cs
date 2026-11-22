@@ -3,10 +3,12 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using SwitchToKVM.App.ViewModels;
 using SwitchToKVM.App.Views;
 using SwitchToKVM.Core;
 using SwitchToKVM.Core.Configuration;
+using SwitchToKVM.Core.Ipc;
 using SwitchToKVM.Core.Monitors;
 
 namespace SwitchToKVM.App;
@@ -37,10 +39,17 @@ public partial class App : Application
 #endif
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            _tray = new TrayViewModel(OpenSettings, () => desktop.Shutdown());
-            DataContext = _tray;
-            desktop.Exit += (_, _) => _tray.Dispose();
-            _tray.Start();
+            var tray = new TrayViewModel(OpenSettings, () => desktop.Shutdown());
+            _tray = tray;
+            DataContext = tray;
+            tray.Start();
+
+            var pipe = new PipeServer(AppPipe.Name, command => Dispatcher.UIThread.InvokeAsync(() => tray.HandleCommandAsync(command)));
+            desktop.Exit += (_, _) =>
+            {
+                pipe.Dispose();
+                tray.Dispose();
+            };
 
             if (_tray.Config is null) OpenSettings();
         }

@@ -4,13 +4,22 @@ public sealed class MonitorConnection(Func<IMonitor?> findMonitor, TimeSpan retr
 {
     public const int Attempts = 4;
 
+    private readonly Lock _lock = new();
     private IMonitor? _monitor = monitor;
 
     public bool HasMonitor => _monitor is not null;
 
-    public void Connect() => _monitor ??= findMonitor();
+    public void Connect()
+    {
+        lock (_lock) _monitor ??= findMonitor();
+    }
 
     public bool SetInput(byte input)
+    {
+        lock (_lock) return SetInputWithRetries(input);
+    }
+
+    private bool SetInputWithRetries(byte input)
     {
         for (var attempt = 0; attempt < Attempts; attempt++)
         {
@@ -25,7 +34,10 @@ public sealed class MonitorConnection(Func<IMonitor?> findMonitor, TimeSpan retr
 
     public void Dispose()
     {
-        _monitor?.Dispose();
-        _monitor = null;
+        lock (_lock)
+        {
+            _monitor?.Dispose();
+            _monitor = null;
+        }
     }
 }

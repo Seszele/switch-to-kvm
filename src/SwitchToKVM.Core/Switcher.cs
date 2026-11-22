@@ -22,6 +22,12 @@ public sealed class Switcher : IDisposable
 
     public bool HasMonitor => _monitor.HasMonitor;
 
+    public bool Connect()
+    {
+        _monitor.Connect();
+        return HasMonitor;
+    }
+
     public event Action<byte, bool>? Switched;
 
     public void Dispose()
@@ -31,10 +37,13 @@ public sealed class Switcher : IDisposable
         _monitor.Dispose();
     }
 
-    private void OnPresenceChanged(bool present)
+    public bool Switch(bool toHere)
     {
-        var input = present ? _here : _away;
+        var input = toHere ? _here : _away;
         var ok = _monitor.SetInput(input);
         Switched?.Invoke(input, ok);
+        return ok;
     }
+
+    private void OnPresenceChanged(bool present) => Switch(present);
 }

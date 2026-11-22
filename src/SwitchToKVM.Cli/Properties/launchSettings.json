@@ -1,5 +1,17 @@
 {
   "profiles": {
+    "status": {
+      "commandName": "Project",
+      "commandLineArgs": "status"
+    },
+    "here": {
+      "commandName": "Project",
+      "commandLineArgs": "here"
+    },
+    "away": {
+      "commandName": "Project",
+      "commandLineArgs": "away"
+    },
     "run (KVM)": {
       "commandName": "Project",
       "commandLineArgs": "run"
