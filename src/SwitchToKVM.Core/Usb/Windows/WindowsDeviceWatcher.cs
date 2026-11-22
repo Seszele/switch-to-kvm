@@ -1,18 +1,18 @@
 using System.Runtime.InteropServices;
 
-namespace SwitchToKVM.Core.Usb;
+namespace SwitchToKVM.Core.Usb.Windows;
 
-public sealed unsafe class UsbDeviceWatcher : IDisposable
+public sealed unsafe class WindowsDeviceWatcher : IDeviceWatcher
 {
     private static readonly Guid UsbDeviceInterface = new("A5DCBF10-6530-11D2-901F-00C04FB951ED");
 
     private readonly string _id;
-    private readonly HashSet<string> _present = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _present = [with(StringComparer.OrdinalIgnoreCase)];
     private readonly Lock _lock = new();
     private GCHandle _self;
     private nint _notification;
 
-    public UsbDeviceWatcher(ushort vendorId, ushort productId)
+    public WindowsDeviceWatcher(ushort vendorId, ushort productId)
     {
         _id = $"VID_{vendorId:X4}&PID_{productId:X4}";
         _self = GCHandle.Alloc(this);
@@ -73,7 +73,7 @@ public sealed unsafe class UsbDeviceWatcher : IDisposable
     [UnmanagedCallersOnly]
     private static uint OnNotification(nint notification, nint context, uint action, Native.CmNotifyEventData* data, uint size)
     {
-        var watcher = (UsbDeviceWatcher)GCHandle.FromIntPtr(context).Target!;
+        var watcher = (WindowsDeviceWatcher)GCHandle.FromIntPtr(context).Target!;
         watcher.OnInterfaceChanged(action, ReadSymbolicLink(data, size));
         return Native.Success;
     }

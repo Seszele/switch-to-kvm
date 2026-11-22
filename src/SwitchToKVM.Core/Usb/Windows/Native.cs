@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace SwitchToKVM.Core.Usb;
+namespace SwitchToKVM.Core.Usb.Windows;
 
 internal static unsafe partial class Native
 {

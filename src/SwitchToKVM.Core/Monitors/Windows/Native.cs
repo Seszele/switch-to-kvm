@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace SwitchToKVM.Core.Monitors;
+namespace SwitchToKVM.Core.Monitors.Windows;
 
 internal static unsafe partial class Native
 {

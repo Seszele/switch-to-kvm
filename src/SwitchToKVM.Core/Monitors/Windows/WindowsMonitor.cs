@@ -1,15 +1,15 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace SwitchToKVM.Core.Monitors;
+namespace SwitchToKVM.Core.Monitors.Windows;
 
-public sealed unsafe class DdcMonitor : IDisposable
+public sealed unsafe class WindowsMonitor : IMonitor
 {
     private const byte InputSource = 0x60;
 
     private nint _handle;
 
-    private DdcMonitor(nint handle) => _handle = handle;
+    private WindowsMonitor(nint handle) => _handle = handle;
 
     public string CapabilitiesString => field ??= ReadCapabilities();
     public string? Model => Capabilities.Model(CapabilitiesString);
@@ -27,7 +27,15 @@ public sealed unsafe class DdcMonitor : IDisposable
         _handle = 0;
     }
 
-    public static List<DdcMonitor> GetAll()
+    public static WindowsMonitor? Find(string model)
+    {
+        var monitors = GetAll();
+        var match = monitors.FirstOrDefault(m => m.Model == model);
+        foreach (var monitor in monitors.Where(m => m != match)) monitor.Dispose();
+        return match;
+    }
+
+    public static List<WindowsMonitor> GetAll()
     {
         var hMonitors = new List<nint>();
         var gcHandle = GCHandle.Alloc(hMonitors);
@@ -40,7 +48,7 @@ public sealed unsafe class DdcMonitor : IDisposable
             gcHandle.Free();
         }
 
-        var result = new List<DdcMonitor>();
+        var result = new List<WindowsMonitor>();
         foreach (var hMonitor in hMonitors)
         {
             if (!Native.GetNumberOfPhysicalMonitorsFromHMONITOR(hMonitor, out var count) || count == 0) continue;
@@ -49,7 +57,7 @@ public sealed unsafe class DdcMonitor : IDisposable
             {
                 if (!Native.GetPhysicalMonitorsFromHMONITOR(hMonitor, count, pointer)) continue;
             }
-            result.AddRange(physical.Select(m => new DdcMonitor(m.Handle)));
+            result.AddRange(physical.Select(m => new WindowsMonitor(m.Handle)));
         }
         return result;
     }
