@@ -8,4 +8,8 @@
         <IsAotCompatible>true</IsAotCompatible>
     </PropertyGroup>
 
+    <ItemGroup>
+        <InternalsVisibleTo Include="SwitchToKVM.Core.Tests" />
+    </ItemGroup>
+
 </Project>

@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/SwitchToKVM.Core.Tests/SwitchToKVM.Core.Tests.csproj" />
+  </Folder>
   <Project Path="src/SwitchToKVM.App/SwitchToKVM.App.csproj" />
   <Project Path="src/SwitchToKVM.Cli/SwitchToKVM.Cli.csproj" />
   <Project Path="src/SwitchToKVM.Core/SwitchToKVM.Core.csproj" />

@@ -1,5 +1,7 @@
 using System.Globalization;
+using System.Text.Json;
 using SwitchToKVM.Core;
+using SwitchToKVM.Core.Configuration;
 using SwitchToKVM.Core.Monitors.Windows;
 using SwitchToKVM.Core.Usb.Windows;
 
@@ -8,7 +10,9 @@ return args switch
     ["monitors"] => ListMonitors(),
     ["set", var model, var value] => SetInput(model, value),
     ["watch", var vendorId, var productId] => Watch(vendorId, productId),
-    ["run", var vendorId, var productId, var model, var here, var away] => Run(vendorId, productId, model, here, away),
+    ["config"] => ShowConfig(),
+    ["config", "set", var vendorId, var productId, var model, var here, var away] => SetConfig(vendorId, productId, model, here, away),
+    ["run"] => Run(),
     _ => Usage(),
 };
 
@@ -52,13 +56,34 @@ static int Watch(string vendorId, string productId)
     return 0;
 }
 
-static int Run(string vendorId, string productId, string model, string here, string away)
+static int ShowConfig()
+{
+    Console.WriteLine(ConfigFile.DefaultPath);
+    if (!TryLoadConfig(out _)) return 1;
+    Console.WriteLine(File.ReadAllText(ConfigFile.DefaultPath));
+    return 0;
+}
+
+static int SetConfig(string vendorId, string productId, string model, string here, string away)
 {
     if (!TryParseIds(vendorId, productId, out var vid, out var pid)) return 1;
     if (!TryParseHex(here, out var hereInput) || !TryParseHex(away, out var awayInput)) return 1;
 
-    Console.WriteLine($"Looking for monitor {model}...");
-    using var switcher = new Switcher(new WindowsDeviceWatcher(vid, pid), () => WindowsMonitor.Find(model), hereInput, awayInput);
+    ConfigFile.Save(new Config(vid, pid, model, hereInput, awayInput), ConfigFile.DefaultPath);
+    Console.WriteLine($"Saved {ConfigFile.DefaultPath}");
+    return 0;
+}
+
+static int Run()
+{
+    if (!TryLoadConfig(out var config)) return 1;
+
+    Console.WriteLine($"Looking for monitor {config.MonitorModel}...");
+    using var switcher = new Switcher(
+        new WindowsDeviceWatcher(config.VendorId, config.ProductId),
+        () => WindowsMonitor.Find(config.MonitorModel),
+        config.HereInput,
+        config.AwayInput);
     if (!switcher.HasMonitor) Console.WriteLine("Monitor not found yet, will retry on the first switch.");
 
     switcher.Switched += (input, ok) =>
@@ -67,6 +92,27 @@ static int Run(string vendorId, string productId, string model, string here, str
     Console.WriteLine("Running. Press your USB switch. Press Enter to stop.");
     Console.ReadLine();
     return 0;
+}
+
+static bool TryLoadConfig(out Config config)
+{
+    config = null!;
+    try
+    {
+        var loaded = ConfigFile.Load(ConfigFile.DefaultPath);
+        if (loaded is null)
+        {
+            Console.Error.WriteLine($"No config at {ConfigFile.DefaultPath}. Create one with: config set <vendor id> <product id> <model> <here input> <away input>");
+            return false;
+        }
+        config = loaded;
+        return true;
+    }
+    catch (JsonException e)
+    {
+        Console.Error.WriteLine($"Invalid config at {ConfigFile.DefaultPath}: {e.Message}");
+        return false;
+    }
 }
 
 static bool TryParseIds(string vendorId, string productId, out ushort vid, out ushort pid)
@@ -93,7 +139,9 @@ static int Usage()
           monitors
           set <model> <hex input>
           watch <vendor id> <product id>
-          run <vendor id> <product id> <model> <here input> <away input>
+          config
+          config set <vendor id> <product id> <model> <here input> <away input>
+          run
         """);
     return 1;
 }

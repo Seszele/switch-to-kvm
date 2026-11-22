@@ -35,7 +35,8 @@ public sealed class Switcher : IDisposable
     private void OnPresenceChanged(bool present)
     {
         var input = present ? _here : _away;
-        Switched?.Invoke(input, TrySetInput(input));
+        var ok = TrySetInput(input);
+        Switched?.Invoke(input, ok);
     }
 
     private bool TrySetInput(byte input)
