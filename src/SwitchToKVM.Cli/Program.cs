@@ -58,9 +58,9 @@ static int Watch(string vendorId, string productId)
 
 static int ShowConfig()
 {
-    Console.WriteLine(ConfigFile.DefaultPath);
+    Console.WriteLine(AppPaths.Config);
     if (!TryLoadConfig(out _)) return 1;
-    Console.WriteLine(File.ReadAllText(ConfigFile.DefaultPath));
+    Console.WriteLine(File.ReadAllText(AppPaths.Config));
     return 0;
 }
 
@@ -69,8 +69,8 @@ static int SetConfig(string vendorId, string productId, string model, string her
     if (!TryParseIds(vendorId, productId, out var vid, out var pid)) return 1;
     if (!TryParseHex(here, out var hereInput) || !TryParseHex(away, out var awayInput)) return 1;
 
-    ConfigFile.Save(new Config(vid, pid, model, hereInput, awayInput), ConfigFile.DefaultPath);
-    Console.WriteLine($"Saved {ConfigFile.DefaultPath}");
+    ConfigFile.Save(new Config(vid, pid, model, hereInput, awayInput), AppPaths.Config);
+    Console.WriteLine($"Saved {AppPaths.Config}");
     return 0;
 }
 
@@ -99,10 +99,10 @@ static bool TryLoadConfig(out Config config)
     config = null!;
     try
     {
-        var loaded = ConfigFile.Load(ConfigFile.DefaultPath);
+        var loaded = ConfigFile.Load(AppPaths.Config);
         if (loaded is null)
         {
-            Console.Error.WriteLine($"No config at {ConfigFile.DefaultPath}. Create one with: config set <vendor id> <product id> <model> <here input> <away input>");
+            Console.Error.WriteLine($"No config at {AppPaths.Config}. Create one with: config set <vendor id> <product id> <model> <here input> <away input>");
             return false;
         }
         config = loaded;
@@ -110,7 +110,7 @@ static bool TryLoadConfig(out Config config)
     }
     catch (JsonException e)
     {
-        Console.Error.WriteLine($"Invalid config at {ConfigFile.DefaultPath}: {e.Message}");
+        Console.Error.WriteLine($"Invalid config at {AppPaths.Config}: {e.Message}");
         return false;
     }
 }

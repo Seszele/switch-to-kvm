@@ -73,8 +73,15 @@ public sealed unsafe class WindowsDeviceWatcher : IDeviceWatcher
     [UnmanagedCallersOnly]
     private static uint OnNotification(nint notification, nint context, uint action, Native.CmNotifyEventData* data, uint size)
     {
-        var watcher = (WindowsDeviceWatcher)GCHandle.FromIntPtr(context).Target!;
-        watcher.OnInterfaceChanged(action, ReadSymbolicLink(data, size));
+        try
+        {
+            var watcher = (WindowsDeviceWatcher)GCHandle.FromIntPtr(context).Target!;
+            watcher.OnInterfaceChanged(action, ReadSymbolicLink(data, size));
+        }
+        catch (Exception e)
+        {
+            Log.Write($"Device notification failed: {e}");
+        }
         return Native.Success;
     }
 

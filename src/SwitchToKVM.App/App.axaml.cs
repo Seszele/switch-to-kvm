@@ -1,8 +1,8 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using SwitchToKVM.App.ViewModels;
-using SwitchToKVM.App.Views;
 
 namespace SwitchToKVM.App;
 
@@ -17,10 +17,12 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = new MainViewModel(),
-            };
+            desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
+            var tray = new TrayViewModel(() => desktop.Shutdown());
+            DataContext = tray;
+            desktop.Exit += (_, _) => tray.Dispose();
+            tray.Start();
         }
 
         base.OnFrameworkInitializationCompleted();

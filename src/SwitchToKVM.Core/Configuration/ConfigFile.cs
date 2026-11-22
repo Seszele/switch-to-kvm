@@ -5,9 +5,6 @@ namespace SwitchToKVM.Core.Configuration;
 
 public static class ConfigFile
 {
-    public static string DefaultPath { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SwitchToKVM", "config.json");
-
     public static Config? Load(string path)
     {
         if (!File.Exists(path)) return null;
