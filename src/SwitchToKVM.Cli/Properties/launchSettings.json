@@ -1,0 +1,32 @@
+{
+  "profiles": {
+    "run (KVM)": {
+      "commandName": "Project",
+      "commandLineArgs": "run"
+    },
+    "config": {
+      "commandName": "Project",
+      "commandLineArgs": "config"
+    },
+    "config set (tested setup)": {
+      "commandName": "Project",
+      "commandLineArgs": "config set 3434 D030 PL2770QS 0F 11"
+    },
+    "watch keyboard": {
+      "commandName": "Project",
+      "commandLineArgs": "watch 3434 D030"
+    },
+    "monitors": {
+      "commandName": "Project",
+      "commandLineArgs": "monitors"
+    },
+    "set away (HDMI)": {
+      "commandName": "Project",
+      "commandLineArgs": "set PL2770QS 11"
+    },
+    "set here (DisplayPort)": {
+      "commandName": "Project",
+      "commandLineArgs": "set PL2770QS 0F"
+    }
+  }
+}

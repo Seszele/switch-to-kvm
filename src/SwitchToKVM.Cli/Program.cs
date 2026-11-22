@@ -22,7 +22,7 @@ static int ListMonitors()
     foreach (var monitor in monitors)
     {
         var inputs = string.Join(" ", monitor.Inputs.Select(i => $"0x{i:X2}"));
-        Console.WriteLine($"{monitor.Model ?? "(unknown)"}  current: 0x{monitor.GetInput():X2}  inputs: {inputs}");
+        Console.WriteLine($"{monitor.Model ?? "(unknown)"}  current: 0x{monitor.GetInput():X2}  inputs: {inputs}  screen: {monitor.Area}{(monitor.IsPrimary ? " (main)" : "")}");
         monitor.Dispose();
     }
     return 0;

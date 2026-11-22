@@ -1,0 +1,298 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SwitchToKVM.App.ViewModels"
+             x:Class="SwitchToKVM.App.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel"
+             Background="{StaticResource BackgroundBrush}"
+             Foreground="{StaticResource TextBrush}">
+
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="ExpanderHeaderBackground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ExpanderHeaderBackgroundPointerOver" Color="#F5F2FD" />
+        <SolidColorBrush x:Key="ExpanderHeaderBackgroundPressed" Color="#EEEAFB" />
+        <SolidColorBrush x:Key="ExpanderHeaderBorderBrush" Color="#ECE6F3" />
+        <SolidColorBrush x:Key="ExpanderHeaderBorderBrushPointerOver" Color="#D6CEEA" />
+        <SolidColorBrush x:Key="ExpanderHeaderBorderBrushPressed" Color="#D6CEEA" />
+        <SolidColorBrush x:Key="ExpanderContentBackground" Color="#F5F2FD" />
+        <SolidColorBrush x:Key="ExpanderContentBorderBrush" Color="#ECE6F3" />
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.title">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="TextBlock.body">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="LineHeight" Value="21" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="TextBlock.muted">
+            <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
+        </Style>
+        <Style Selector="TextBlock.label">
+            <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+        <Style Selector="TextBlock.value">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="{StaticResource CardBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Padding" Value="18" />
+        </Style>
+        <Style Selector="Border.mint">
+            <Setter Property="Background" Value="{StaticResource MintBrush}" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Padding" Value="18" />
+        </Style>
+        <Style Selector="Border.peach">
+            <Setter Property="Background" Value="{StaticResource PeachBrush}" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Padding" Value="18" />
+        </Style>
+        <Style Selector="Border.lavender">
+            <Setter Property="Background" Value="{StaticResource LavenderBrush}" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+        <Style Selector="Border.pill">
+            <Setter Property="Background" Value="{StaticResource CardBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="Padding" Value="10,3" />
+        </Style>
+
+        <Style Selector="Button">
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="18,9" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+
+        <Style Selector="ProgressBar">
+            <Setter Property="Background" Value="{StaticResource LavenderBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+        </Style>
+
+        <Style Selector="ListBox">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="ListBoxItem">
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Padding" Value="16,12" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Background" Value="{StaticResource CardBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource LavenderHoverBrush}" />
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource LavenderBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+        </Style>
+        <Style Selector="ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource LavenderBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Panel Margin="28">
+
+        <Grid RowDefinitions="Auto,*,Auto" IsVisible="{Binding IsOverview}">
+            <StackPanel Spacing="6">
+                <TextBlock Classes="title" Text="You're all set" />
+                <TextBlock Classes="body muted"
+                           Text="When you press your USB switch, the monitor follows your keyboard and mouse." />
+            </StackPanel>
+            <Border Grid.Row="1" Classes="card" Margin="0,20" VerticalAlignment="Top">
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="20" RowSpacing="12">
+                    <TextBlock Classes="label" Text="Monitor" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Classes="value" Text="{Binding SummaryMonitor}" />
+                    <TextBlock Grid.Row="1" Classes="label" Text="This computer" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding SummaryHere}" />
+                    <TextBlock Grid.Row="2" Classes="label" Text="Other computer" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Classes="value" Text="{Binding SummaryAway}" />
+                </Grid>
+            </Border>
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="Set up again" Command="{Binding StartSetupCommand}" />
+                <Button Content="Close" Classes="accent" Command="{Binding CloseCommand}" />
+            </StackPanel>
+        </Grid>
+
+        <StackPanel IsVisible="{Binding IsLoading}" VerticalAlignment="Center" Spacing="14">
+            <TextBlock Classes="title" Text="Looking for your monitors" HorizontalAlignment="Center" />
+            <TextBlock Classes="body muted" Text="This takes a few seconds." HorizontalAlignment="Center" />
+            <ProgressBar IsIndeterminate="True" Width="220" Margin="0,8,0,0" />
+        </StackPanel>
+
+        <Grid RowDefinitions="*,Auto" IsVisible="{Binding IsProblem}">
+            <StackPanel Spacing="14" VerticalAlignment="Top">
+                <Border Classes="peach">
+                    <StackPanel Spacing="8">
+                        <TextBlock Classes="title" Text="{Binding Problem.Title, FallbackValue=''}" Foreground="{StaticResource PeachTextBrush}" />
+                        <TextBlock Classes="body" Text="{Binding Problem.Message, FallbackValue=''}" />
+                    </StackPanel>
+                </Border>
+                <Border Classes="card" IsVisible="{Binding Problem.SuggestAlternative, FallbackValue=False}">
+                    <StackPanel Spacing="4">
+                        <TextBlock Classes="body"
+                                   Text="display-switch by haimgel solves the same problem with an app on both computers, so it can work with monitors like yours." />
+                        <HyperlinkButton Content="github.com/haimgel/display-switch"
+                                         NavigateUri="https://github.com/haimgel/display-switch"
+                                         Padding="0" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="Close" Command="{Binding CloseCommand}" />
+                <Button Content="Try again" Classes="accent" Command="{Binding StartSetupCommand}" />
+            </StackPanel>
+        </Grid>
+
+        <Grid RowDefinitions="Auto,*,Auto" IsVisible="{Binding IsMonitor}">
+            <StackPanel Spacing="6">
+                <TextBlock Classes="title" Text="Which monitor do you share?" />
+                <TextBlock Classes="body muted" Text="Pick the monitor that both computers are plugged into." />
+            </StackPanel>
+            <ListBox Grid.Row="1" Margin="0,16"
+                     ItemsSource="{Binding Monitors}"
+                     SelectedItem="{Binding SelectedMonitor}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:MonitorOption">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                            <StackPanel Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Classes="value" Text="{Binding Model}" />
+                                <TextBlock Classes="label" Text="{Binding Details}"
+                                           IsVisible="{Binding Details, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            </StackPanel>
+                            <Border Grid.Column="1" Classes="pill" VerticalAlignment="Center" IsVisible="{Binding IsCurrent}">
+                                <TextBlock Text="This window" FontSize="12" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AccentBrush}" />
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="Cancel" Command="{Binding CloseCommand}" />
+                <Button Content="Next" Classes="accent" Command="{Binding UseSelectedMonitorCommand}" />
+            </StackPanel>
+        </Grid>
+
+        <Grid RowDefinitions="Auto,*,Auto,Auto" IsVisible="{Binding IsInput}">
+            <StackPanel Spacing="6">
+                <TextBlock Classes="title" Text="Where's your other computer plugged in?" />
+                <TextBlock Classes="body muted">
+                    <Run Text="This computer uses " /><Run Text="{Binding HereName}" FontWeight="SemiBold" /><Run Text=". Not sure about the other one? Pick one, the next step shows whether it's right." />
+                </TextBlock>
+            </StackPanel>
+
+            <ListBox Grid.Row="1" Margin="0,16,0,8"
+                     ItemsSource="{Binding AwayOptions}"
+                     SelectedItem="{Binding SelectedAway}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:InputOption">
+                        <TextBlock Classes="value" Text="{Binding Name}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <TextBlock Grid.Row="2" Classes="body" Margin="0,0,0,16"
+                       Text="{Binding InputMessage}"
+                       Foreground="{StaticResource PeachTextBrush}"
+                       IsVisible="{Binding InputMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="Cancel" Command="{Binding CloseCommand}" />
+                <Button Content="Next" Classes="accent" Command="{Binding UseSelectedInputCommand}" />
+            </StackPanel>
+        </Grid>
+
+        <Grid RowDefinitions="*,Auto" IsVisible="{Binding IsDevice}">
+            <StackPanel VerticalAlignment="Center" Spacing="14">
+                <TextBlock Classes="title" Text="{Binding DeviceMessage}" HorizontalAlignment="Center" TextAlignment="Center" />
+                <TextBlock Classes="body muted" HorizontalAlignment="Center" TextAlignment="Center"
+                           Text="{Binding DeviceHint}"
+                           IsVisible="{Binding DeviceHint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <ProgressBar IsIndeterminate="True" Width="220" Margin="0,8,0,0" />
+            </StackPanel>
+            <Button Grid.Row="1" HorizontalAlignment="Right" Content="Cancel" Command="{Binding CloseCommand}" />
+        </Grid>
+
+        <Grid RowDefinitions="Auto,*,Auto" IsVisible="{Binding IsConfirm}">
+            <Border Classes="mint">
+                <StackPanel Spacing="6">
+                    <TextBlock Classes="title" Text="Did your screen follow?" Foreground="{StaticResource MintTextBrush}" />
+                    <TextBlock Classes="body" Text="It should have shown your other computer, and then this one again." />
+                </StackPanel>
+            </Border>
+            <Border Grid.Row="1" Classes="card" Margin="0,16" VerticalAlignment="Top">
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="20" RowSpacing="12">
+                    <TextBlock Classes="label" Text="Monitor" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Classes="value" Text="{Binding SummaryMonitor}" />
+                    <TextBlock Grid.Row="1" Classes="label" Text="This computer" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding SummaryHere}" />
+                    <TextBlock Grid.Row="2" Classes="label" Text="Other computer" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Classes="value" Text="{Binding SummaryAway}" />
+                </Grid>
+            </Border>
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="No" Command="{Binding ConfirmNoCommand}" />
+                <Button Content="Yes, finish" Classes="accent" Command="{Binding FinishCommand}" />
+            </StackPanel>
+        </Grid>
+
+        <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" IsVisible="{Binding IsTroubleshoot}">
+            <StackPanel Spacing="6">
+                <TextBlock Classes="title" Text="Let's find the right input" />
+                <TextBlock Classes="body muted"
+                           Text="Pick an input and try it. The screen shows it for 10 seconds, then comes back here." />
+            </StackPanel>
+
+            <ListBox Grid.Row="1" Margin="0,14,0,0"
+                     ItemsSource="{Binding AwayOptions}"
+                     SelectedItem="{Binding SelectedAway}"
+                     IsEnabled="{Binding !IsTrying}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:InputOption">
+                        <TextBlock Classes="value" Text="{Binding Name}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <StackPanel Grid.Row="2" Spacing="8"
+                        IsVisible="{Binding TryMessage, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <TextBlock Classes="body" Text="{Binding TryMessage}" />
+                <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsTrying}" />
+            </StackPanel>
+
+            <Expander Grid.Row="3" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Margin="0,12,0,16"
+                      CornerRadius="12"
+                      Header="Still nothing? Things to check">
+                <StackPanel Spacing="4">
+                    <TextBlock Classes="body" Text="• Make sure the other computer is on and awake." />
+                    <TextBlock Classes="body" Text="• Check its cable is plugged into the monitor." />
+                    <TextBlock Classes="body" Text="• Turn off automatic input detection in the monitor's menu. It can jump back to this computer by itself." />
+                </StackPanel>
+            </Expander>
+
+            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="Cancel" Command="{Binding CloseCommand}" IsEnabled="{Binding !IsTrying}" />
+                <Button Content="Try it" Command="{Binding TryInputCommand}" IsEnabled="{Binding !IsTrying}" />
+                <Button Content="Use this one" Classes="accent" Command="{Binding UseTriedInputCommand}"
+                        IsEnabled="{Binding !IsTrying}" />
+            </StackPanel>
+        </Grid>
+
+    </Panel>
+</UserControl>

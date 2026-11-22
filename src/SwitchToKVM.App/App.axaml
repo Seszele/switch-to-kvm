@@ -2,21 +2,49 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:SwitchToKVM.App.ViewModels"
              x:Class="SwitchToKVM.App.App"
-             RequestedThemeVariant="Default">
+             RequestedThemeVariant="Light">
+
+    <Application.Resources>
+        <SolidColorBrush x:Key="BackgroundBrush" Color="#FAF7F2" />
+        <SolidColorBrush x:Key="CardBrush" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="CardBorderBrush" Color="#ECE6F3" />
+        <SolidColorBrush x:Key="TextBrush" Color="#2E2A3B" />
+        <SolidColorBrush x:Key="MutedTextBrush" Color="#6E6982" />
+        <SolidColorBrush x:Key="LavenderBrush" Color="#EEEAFB" />
+        <SolidColorBrush x:Key="LavenderHoverBrush" Color="#F5F2FD" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#6E62C8" />
+        <SolidColorBrush x:Key="MintBrush" Color="#E3F4EC" />
+        <SolidColorBrush x:Key="MintTextBrush" Color="#2F6B52" />
+        <SolidColorBrush x:Key="PeachBrush" Color="#FDEBE3" />
+        <SolidColorBrush x:Key="PeachTextBrush" Color="#9A4126" />
+
+        <SolidColorBrush x:Key="ButtonBackground" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#F5F2FD" />
+        <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#EEEAFB" />
+        <SolidColorBrush x:Key="ButtonBorderBrush" Color="#E2DCEE" />
+        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#D6CEEA" />
+        <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#D6CEEA" />
+    </Application.Resources>
 
     <Application.Styles>
-        <FluentTheme />
+        <FluentTheme>
+            <FluentTheme.Palettes>
+                <ColorPaletteResources x:Key="Light" Accent="#6E62C8" RegionColor="#FAF7F2" />
+            </FluentTheme.Palettes>
+        </FluentTheme>
     </Application.Styles>
 
     <TrayIcon.Icons>
         <TrayIcons>
             <TrayIcon x:DataType="vm:TrayViewModel"
-                      Icon="/Assets/avalonia-logo.ico"
-                      ToolTipText="SwitchToKVM">
+                      Icon="/Assets/icon.ico"
+                      ToolTipText="SwitchToKVM"
+                      Command="{Binding OpenSettingsCommand}">
                 <TrayIcon.Menu>
                     <NativeMenu>
                         <NativeMenuItem Header="{Binding Status}" IsEnabled="False" />
                         <NativeMenuItemSeparator />
+                        <NativeMenuItem Header="Settings..." Command="{Binding OpenSettingsCommand}" />
                         <NativeMenuItem Header="Open log" Command="{Binding OpenLogCommand}" />
                         <NativeMenuItem Header="Exit" Command="{Binding ExitCommand}" />
                     </NativeMenu>

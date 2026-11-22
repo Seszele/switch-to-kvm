@@ -4,8 +4,6 @@ namespace SwitchToKVM.Core.Usb.Windows;
 
 public sealed unsafe class WindowsDeviceWatcher : IDeviceWatcher
 {
-    private static readonly Guid UsbDeviceInterface = new("A5DCBF10-6530-11D2-901F-00C04FB951ED");
-
     private readonly string _id;
     private readonly HashSet<string> _present = [with(StringComparer.OrdinalIgnoreCase)];
     private readonly Lock _lock = new();
@@ -20,7 +18,7 @@ public sealed unsafe class WindowsDeviceWatcher : IDeviceWatcher
         var filter = new Native.CmNotifyFilter
         {
             Size = (uint)sizeof(Native.CmNotifyFilter),
-            ClassGuid = UsbDeviceInterface,
+            ClassGuid = WindowsUsbDevices.UsbDeviceInterface,
         };
         var result = Native.CM_Register_Notification(&filter, GCHandle.ToIntPtr(_self), &OnNotification, out _notification);
         if (result != Native.Success)
@@ -31,7 +29,7 @@ public sealed unsafe class WindowsDeviceWatcher : IDeviceWatcher
 
         lock (_lock)
         {
-            foreach (var link in GetPresentInterfaces().Where(Matches))
+            foreach (var link in WindowsUsbDevices.GetInterfacePaths().Where(Matches))
                 _present.Add(link);
         }
     }
@@ -92,22 +90,5 @@ public sealed unsafe class WindowsDeviceWatcher : IDeviceWatcher
         var chars = new ReadOnlySpan<char>((byte*)data + offset, (int)(size - offset) / sizeof(char));
         var end = chars.IndexOf('\0');
         return new string(end >= 0 ? chars[..end] : chars);
-    }
-
-    private static List<string> GetPresentInterfaces()
-    {
-        var guid = UsbDeviceInterface;
-        while (true)
-        {
-            if (Native.CM_Get_Device_Interface_List_SizeW(out var length, &guid, null, 0) != Native.Success) return [];
-            var buffer = new char[length];
-            fixed (char* pointer = buffer)
-            {
-                var result = Native.CM_Get_Device_Interface_ListW(&guid, null, pointer, length, 0);
-                if (result == Native.BufferSmall) continue;
-                if (result != Native.Success) return [];
-            }
-            return new string(buffer).Split('\0', StringSplitOptions.RemoveEmptyEntries).ToList();
-        }
     }
 }

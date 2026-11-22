@@ -13,64 +13,111 @@ using SwitchToKVM.Core.Usb.Windows;
 
 namespace SwitchToKVM.App.ViewModels;
 
-public partial class TrayViewModel(Action exit) : ViewModelBase, IDisposable
+public partial class TrayViewModel(Action openSettings, Action exit) : ViewModelBase, IDisposable
 {
     private Switcher? _switcher;
+    private int _generation;
 
     [ObservableProperty] public partial string Status { get; set; } = "Starting...";
+
+    public Config? Config { get; private set; }
 
     public void Start()
     {
         Log.Write("Started");
         try
         {
-            var config = ConfigFile.Load(AppPaths.Config);
-            if (config is null)
-            {
-                Status = "Not set up yet";
-                return;
-            }
-            Status = $"Looking for {config.MonitorModel}...";
-            Task.Run(() => Connect(config));
+            Config = ConfigFile.Load(AppPaths.Config);
         }
         catch (JsonException e)
         {
             Status = "Config file is invalid";
             Log.Write($"Invalid config: {e.Message}");
+            return;
         }
+
+        if (Config is null)
+            Status = "Not set up yet";
+        else
+            _ = ConnectAsync(Config);
     }
 
-    public void Dispose() => _switcher?.Dispose();
-
-    private void Connect(Config config)
+    public void Apply(Config config)
     {
+        Log.Write("Settings saved");
+        Config = config;
+        _ = ConnectAsync(config);
+    }
+
+    public void Pause()
+    {
+        _generation++;
+        _switcher?.Dispose();
+        _switcher = null;
+        Status = "Paused during setup";
+    }
+
+    public void Resume()
+    {
+        if (Config is null)
+            Status = "Not set up yet";
+        else
+            _ = ConnectAsync(Config);
+    }
+
+    public void Dispose()
+    {
+        _generation++;
+        _switcher?.Dispose();
+    }
+
+    private async Task ConnectAsync(Config config)
+    {
+        var generation = ++_generation;
+        _switcher?.Dispose();
+        _switcher = null;
+        Status = $"Looking for {config.MonitorModel}...";
+
         try
         {
-            var switcher = new Switcher(
-                new WindowsDeviceWatcher(config.VendorId, config.ProductId),
-                () => WindowsMonitor.Find(config.MonitorModel),
-                config.HereInput,
-                config.AwayInput);
-            switcher.Switched += OnSwitched;
-            _switcher = switcher;
+            var switcher = await Task.Run(() => CreateSwitcher(config));
+            if (generation != _generation)
+            {
+                switcher.Dispose();
+                return;
+            }
 
-            SetStatus(switcher.HasMonitor ? $"Watching · {config.MonitorModel}" : $"{config.MonitorModel} not found");
+            _switcher = switcher;
+            Status = switcher.HasMonitor ? $"Watching · {config.MonitorModel}" : $"{config.MonitorModel} not found";
             Log.Write(switcher.HasMonitor ? $"Found {config.MonitorModel}" : $"{config.MonitorModel} not found");
         }
         catch (Exception e)
         {
-            SetStatus("Failed to start, see log");
+            if (generation == _generation) Status = "Failed to start, see log";
             Log.Write($"Failed to start: {e}");
         }
+    }
+
+    private Switcher CreateSwitcher(Config config)
+    {
+        var switcher = new Switcher(
+            new WindowsDeviceWatcher(config.VendorId, config.ProductId),
+            () => WindowsMonitor.Find(config.MonitorModel),
+            config.HereInput,
+            config.AwayInput);
+        switcher.Switched += OnSwitched;
+        return switcher;
     }
 
     private void OnSwitched(byte input, bool ok)
     {
         Log.Write($"Switch to 0x{input:X2}: {(ok ? "OK" : "FAILED")}");
-        SetStatus(ok ? $"Switched to 0x{input:X2} at {DateTime.Now:HH:mm}" : $"Switch to 0x{input:X2} failed");
+        var status = ok ? $"Switched to 0x{input:X2} at {DateTime.Now:HH:mm}" : $"Switch to 0x{input:X2} failed";
+        Dispatcher.UIThread.Post(() => Status = status);
     }
 
-    private void SetStatus(string status) => Dispatcher.UIThread.Post(() => Status = status);
+    [RelayCommand]
+    private void OpenSettings() => openSettings();
 
     [RelayCommand]
     private void OpenLog()

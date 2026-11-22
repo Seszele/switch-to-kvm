@@ -9,7 +9,15 @@ public sealed unsafe class WindowsMonitor : IMonitor
 
     private nint _handle;
 
-    private WindowsMonitor(nint handle) => _handle = handle;
+    private WindowsMonitor(nint handle, ScreenArea? area, bool isPrimary)
+    {
+        _handle = handle;
+        Area = area;
+        IsPrimary = isPrimary;
+    }
+
+    public ScreenArea? Area { get; }
+    public bool IsPrimary { get; }
 
     public string CapabilitiesString => field ??= ReadCapabilities();
     public string? Model => Capabilities.Model(CapabilitiesString);
@@ -57,9 +65,19 @@ public sealed unsafe class WindowsMonitor : IMonitor
             {
                 if (!Native.GetPhysicalMonitorsFromHMONITOR(hMonitor, count, pointer)) continue;
             }
-            result.AddRange(physical.Select(m => new WindowsMonitor(m.Handle)));
+            var (area, isPrimary) = GetScreenArea(hMonitor);
+            result.AddRange(physical.Select(m => new WindowsMonitor(m.Handle, area, isPrimary)));
         }
         return result;
+    }
+
+    private static (ScreenArea? Area, bool IsPrimary) GetScreenArea(nint hMonitor)
+    {
+        var info = new Native.MonitorInfo { Size = (uint)sizeof(Native.MonitorInfo) };
+        if (!Native.GetMonitorInfo(hMonitor, ref info)) return (null, false);
+        var rect = info.Monitor;
+        var area = new ScreenArea(rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top);
+        return (area, (info.Flags & Native.MonitorInfoPrimary) != 0);
     }
 
     [UnmanagedCallersOnly]

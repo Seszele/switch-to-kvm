@@ -6,22 +6,21 @@ namespace SwitchToKVM.Core;
 public sealed class Switcher : IDisposable
 {
     private readonly IDeviceWatcher _watcher;
-    private readonly Func<IMonitor?> _findMonitor;
+    private readonly MonitorConnection _monitor;
     private readonly byte _here;
     private readonly byte _away;
-    private IMonitor? _monitor;
 
-    public Switcher(IDeviceWatcher watcher, Func<IMonitor?> findMonitor, byte here, byte away)
+    public Switcher(IDeviceWatcher watcher, Func<IMonitor?> findMonitor, byte here, byte away, TimeSpan? retryDelay = null)
     {
         _watcher = watcher;
-        _findMonitor = findMonitor;
         _here = here;
         _away = away;
-        _monitor = findMonitor();
+        _monitor = new MonitorConnection(findMonitor, retryDelay ?? TimeSpan.FromSeconds(1));
+        _monitor.Connect();
         _watcher.PresenceChanged += OnPresenceChanged;
     }
 
-    public bool HasMonitor => _monitor is not null;
+    public bool HasMonitor => _monitor.HasMonitor;
 
     public event Action<byte, bool>? Switched;
 
@@ -29,22 +28,13 @@ public sealed class Switcher : IDisposable
     {
         _watcher.PresenceChanged -= OnPresenceChanged;
         _watcher.Dispose();
-        _monitor?.Dispose();
+        _monitor.Dispose();
     }
 
     private void OnPresenceChanged(bool present)
     {
         var input = present ? _here : _away;
-        var ok = TrySetInput(input);
+        var ok = _monitor.SetInput(input);
         Switched?.Invoke(input, ok);
-    }
-
-    private bool TrySetInput(byte input)
-    {
-        if (_monitor?.SetInput(input) == true) return true;
-
-        _monitor?.Dispose();
-        _monitor = _findMonitor();
-        return _monitor?.SetInput(input) == true;
     }
 }

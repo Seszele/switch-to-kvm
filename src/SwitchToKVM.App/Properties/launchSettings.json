@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "App": {
+      "commandName": "Project"
+    },
+    "App (page preview)": {
+      "commandName": "Project",
+      "commandLineArgs": "--preview"
+    }
+  }
+}
