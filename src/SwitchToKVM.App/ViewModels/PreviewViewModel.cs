@@ -51,6 +51,7 @@ public partial class PreviewViewModel : ViewModelBase
             Scenario("Device: screen didn't switch", null, vm => Device(vm, SetupText.ScreenDidntSwitch, SetupText.ScreenDidntSwitchHint)),
             Scenario("Device: switching back", null, vm => Device(vm, SetupText.SwitchingBack, "")),
             Scenario("Confirm", Configured, vm => vm.Step = SetupStep.Confirm),
+            Scenario("Both computers", Configured, vm => vm.Step = SetupStep.BothComputers),
             Scenario("Troubleshoot: one input", null, vm =>
             {
                 Inputs(vm, 0x0F, 0x11);

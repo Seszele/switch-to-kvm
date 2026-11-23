@@ -25,6 +25,7 @@ public enum SetupStep
     Device,
     Confirm,
     Troubleshoot,
+    BothComputers,
 }
 
 public sealed partial class MonitorOption : ObservableObject
@@ -88,7 +89,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsOverview), nameof(IsLoading), nameof(IsProblem), nameof(IsMonitor),
-        nameof(IsInput), nameof(IsDevice), nameof(IsConfirm), nameof(IsTroubleshoot))]
+        nameof(IsInput), nameof(IsDevice), nameof(IsConfirm), nameof(IsTroubleshoot), nameof(IsBothComputers))]
     public partial SetupStep Step { get; set; } = SetupStep.Loading;
 
     public bool IsOverview => Step == SetupStep.Overview;
@@ -99,6 +100,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     public bool IsDevice => Step == SetupStep.Device;
     public bool IsConfirm => Step == SetupStep.Confirm;
     public bool IsTroubleshoot => Step == SetupStep.Troubleshoot;
+    public bool IsBothComputers => Step == SetupStep.BothComputers;
 
     [ObservableProperty] public partial SetupProblem? Problem { get; set; }
 
@@ -248,11 +250,6 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
             var hereOk = await Task.Run(() => connection.SetInput(here));
             Log.Write($"Setup learned device {device}, switch away {(awayOk ? "OK" : "FAILED")}, back {(hereOk ? "OK" : "FAILED")}");
 
-            if (!hereOk)
-            {
-                ShowProblem(SetupText.DidntComeBack);
-                return;
-            }
             if (!awayOk)
             {
                 ShowProblem(SetupText.DidntSwitch(monitor.Model, away.Name));
@@ -261,7 +258,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
 
             _config = new Config(device.VendorId, device.ProductId, monitor.Model, here, away.Value, ShowTrayIcon);
             ShowSummary(_config);
-            Step = SetupStep.Confirm;
+            Step = hereOk ? SetupStep.Confirm : SetupStep.BothComputers;
         }
         catch (OperationCanceledException)
         {
@@ -279,6 +276,9 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         DeviceHint = ok ? "" : SetupText.ScreenDidntSwitchHint;
         return ok;
     }
+
+    [RelayCommand]
+    private void ConfirmDidntComeBack() => Step = SetupStep.BothComputers;
 
     [RelayCommand]
     private void ConfirmNo()

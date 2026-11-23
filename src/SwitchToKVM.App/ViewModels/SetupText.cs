@@ -19,7 +19,7 @@ public static class SetupText
 
     public static readonly SetupProblem DidntComeBack = new(
         "Your monitor didn't come back",
-        "Use the buttons on your monitor to switch back to this computer. Your monitor doesn't accept commands while it shows the other computer, so SwitchToKVM can't switch it back for you.",
+        "Use the buttons on your monitor to switch back to this computer. Your monitor doesn't accept commands while it shows the other computer. Installing SwitchToKVM on both computers works around that: run setup again and finish it, then set up the other computer too.",
         SuggestAlternative: true);
 
     public static SetupProblem CantReadMonitor(string model) => new(
