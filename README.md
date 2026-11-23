@@ -10,7 +10,16 @@ https://github.com/user-attachments/assets/743548b2-0148-4818-8971-5d359d805bfc
 
 ## How it works
 
-When you press the switch, your keyboard and mouse disappear from this computer. The app notices that and tells the monitor to change input over DDC/CI. When they come back, it switches the input back. It only has to run on one of the two computers, which helps if the other one is a work laptop you can't install things on.
+```mermaid
+flowchart LR
+    kb["Keyboard + mouse"] --> sw["USB switch"]
+    sw -- USB --> pc["Desktop<br/>(runs the app)"]
+    sw -- USB --> laptop["Work laptop"]
+    pc -- "DisplayPort<br/>video + DDC/CI" --> mon["Monitor"]
+    laptop -- HDMI --> mon
+```
+
+When you press the switch, your keyboard and mouse disappear from this computer. The app notices that and tells the monitor to change input over DDC/CI (it goes through the normal video cable, nothing extra to plug in). When they come back, it switches the input back. It only has to run on one of the two computers, which helps if the other one is a work laptop you can't install things on.
 
 Why not just buy a KVM switch? Good ones for high resolution and high refresh rate monitors are hard to find and pricey, and some of them make VRR flicker. A USB switch costs about $10, and since the video doesn't go through it, the monitor stays plugged straight into both computers.
 
@@ -33,19 +42,6 @@ It needs DDC/CI, which most monitors have. Sometimes it's turned off in the moni
 The catch is that the monitor has to accept commands from the computer it's *not* currently showing. A lot of monitors do, some don't. Setup tests this for you.
 
 If yours doesn't, install it on both computers. Each one only ever switches the monitor away from itself, and that always works.
-
-## Command line
-
-If you tick "Add to PATH" in the installer, you also get `stkvm`:
-
-```
-stkvm status     what the app is doing
-stkvm here       switch the monitor to this computer
-stkvm away       switch it to the other one
-stkvm settings   open settings
-```
-
-Run `stkvm` with no arguments to see everything.
 
 ## Good to know
 
