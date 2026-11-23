@@ -44,6 +44,7 @@ Root: HKCU; Subkey: "{#RunKey}"; ValueType: string; ValueName: "SwitchToKVM"; Va
 
 [Run]
 Filename: "{app}\SwitchToKVM.exe"; Description: "Start SwitchToKVM now"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\SwitchToKVM.exe"; Flags: nowait; Check: RestartRequested
 
 [UninstallRun]
 Filename: "{app}\stkvm.exe"; Parameters: "quit"; Flags: runhidden; RunOnceId: "QuitApp"
@@ -51,6 +52,11 @@ Filename: "{app}\stkvm.exe"; Parameters: "quit"; Flags: runhidden; RunOnceId: "Q
 [Code]
 const
   EnvironmentKey = 'Environment';
+
+function RestartRequested: Boolean;
+begin
+  Result := Pos('/RESTARTAPP', Uppercase(GetCmdTail)) > 0;
+end;
 
 function IsUpgrade: Boolean;
 begin

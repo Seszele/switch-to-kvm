@@ -20,6 +20,8 @@ public sealed class SettingsHost(Window window, TrayViewModel tray) : ISettingsH
         }
     }
 
+    public Updater Updates => tray.Updates;
+
     public ScreenArea? CurrentScreen() =>
         window.Screens.ScreenFromWindow(window) is { } screen
             ? new ScreenArea(screen.Bounds.X, screen.Bounds.Y, screen.Bounds.Width, screen.Bounds.Height)

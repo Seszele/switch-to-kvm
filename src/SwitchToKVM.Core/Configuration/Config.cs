@@ -8,4 +8,5 @@ public sealed record Config(
     string MonitorModel,
     [property: JsonConverter(typeof(HexConverter<byte>))] byte HereInput,
     [property: JsonConverter(typeof(HexConverter<byte>))] byte AwayInput,
-    bool ShowTrayIcon = true);
+    bool ShowTrayIcon = true,
+    bool CheckForUpdates = true);

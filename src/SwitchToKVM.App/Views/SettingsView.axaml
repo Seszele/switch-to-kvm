@@ -120,6 +120,18 @@
                            Text="When you press your USB switch, the monitor follows your keyboard and mouse." />
             </StackPanel>
             <StackPanel Grid.Row="1" Margin="0,20" Spacing="12" VerticalAlignment="Top">
+                <Border Classes="lavender" Padding="18,12" IsVisible="{Binding Updates.HasUpdate}">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                        <StackPanel Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Classes="value" Text="{Binding Updates.Available.Version, StringFormat='Version {0} is available', FallbackValue=''}" />
+                            <TextBlock Classes="label" TextWrapping="Wrap" Text="{Binding Updates.Error}"
+                                       Foreground="{StaticResource PeachTextBrush}"
+                                       IsVisible="{Binding Updates.Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Classes="accent" VerticalAlignment="Center"
+                                Content="{Binding Updates.ButtonText}" Command="{Binding Updates.UpdateCommand}" />
+                    </Grid>
+                </Border>
                 <Border Classes="card">
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="20" RowSpacing="12">
                         <TextBlock Classes="label" Text="Monitor" VerticalAlignment="Center" />
@@ -137,6 +149,7 @@
                         <TextBlock Classes="label" TextWrapping="Wrap" Margin="28,0,0,4"
                                    IsVisible="{Binding !ShowTrayIcon}"
                                    Text="To get back here, open SwitchToKVM again from the Start menu." />
+                        <CheckBox Content="Check for updates" IsChecked="{Binding CheckForUpdates}" />
                     </StackPanel>
                 </Border>
             </StackPanel>

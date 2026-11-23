@@ -44,6 +44,8 @@
                 <TrayIcon.Menu>
                     <NativeMenu>
                         <NativeMenuItem Header="{Binding Status}" IsEnabled="False" />
+                        <NativeMenuItem Header="{Binding Updates.Header}" IsVisible="{Binding Updates.HasUpdate}"
+                                        Command="{Binding Updates.UpdateCommand}" />
                         <NativeMenuItemSeparator />
                         <NativeMenuItem Header="{Binding SwitchHeader}" Command="{Binding SwitchInputCommand}" />
                         <NativeMenuItem Header="{Binding PauseHeader}" Command="{Binding TogglePauseCommand}" />

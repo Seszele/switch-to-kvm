@@ -4,6 +4,7 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SwitchToKVM.Core.Configuration;
 using SwitchToKVM.Core.Monitors;
+using SwitchToKVM.Core.Updates;
 
 namespace SwitchToKVM.App.ViewModels;
 
@@ -21,6 +22,17 @@ public partial class PreviewViewModel : ViewModelBase
         Scenarios =
         [
             Scenario("Overview", Configured, vm => vm.Step = SetupStep.Overview),
+            Scenario("Overview, update available", Configured, vm =>
+            {
+                vm.Updates.Available = new AvailableUpdate(new Version(0, 2, 0), "https://github.com", null, null);
+                vm.Step = SetupStep.Overview;
+            }),
+            Scenario("Overview, update failed", Configured, vm =>
+            {
+                vm.Updates.Available = new AvailableUpdate(new Version(0, 2, 0), "https://github.com", null, null);
+                vm.Updates.Error = "The update didn't install. Try again later, or download it from GitHub.";
+                vm.Step = SetupStep.Overview;
+            }),
             Scenario("Overview, tray icon hidden", Configured with { ShowTrayIcon = false }, vm => vm.Step = SetupStep.Overview),
             Scenario("Overview, confirming quit", Configured, vm =>
             {
@@ -124,6 +136,7 @@ public partial class PreviewViewModel : ViewModelBase
     private sealed class PreviewHost : ISettingsHost
     {
         public bool StartsWithWindows { get; set; } = true;
+        public Updater Updates { get; } = new();
         public ScreenArea? CurrentScreen() => null;
         public void PauseSwitching() { }
         public void Save(Config config) { }

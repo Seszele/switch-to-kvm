@@ -6,6 +6,7 @@ namespace SwitchToKVM.App.ViewModels;
 public interface ISettingsHost
 {
     bool StartsWithWindows { get; set; }
+    Updater Updates { get; }
     ScreenArea? CurrentScreen();
     void PauseSwitching();
     void Save(Config config);

@@ -38,17 +38,21 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
 
     public Config? Config { get; private set; }
 
+    public Updater Updates { get; } = new();
+
     public void Start()
     {
         Log.Write("Started");
         if (!TryLoadConfig(out var config, out _))
         {
             Status = "Config file is invalid";
+            Updates.Start(true);
             return;
         }
 
         Config = config;
         IsTrayIconVisible = config?.ShowTrayIcon ?? true;
+        Updates.Start(config?.CheckForUpdates ?? true);
         if (config is null)
             Status = "Not set up yet";
         else
@@ -81,9 +85,11 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
     public void Apply(Config config)
     {
         Log.Write("Settings saved");
-        var switchingChanged = Config is null || Config with { ShowTrayIcon = config.ShowTrayIcon } != config;
+        var switchingChanged = Config is null
+                               || Config with { ShowTrayIcon = config.ShowTrayIcon, CheckForUpdates = config.CheckForUpdates } != config;
         Config = config;
         IsTrayIconVisible = config.ShowTrayIcon;
+        Updates.SetEnabled(config.CheckForUpdates);
         if (!switchingChanged) return;
         IsPaused = false;
         _ = ConnectAsync(config);
@@ -108,6 +114,7 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
     {
         _generation++;
         _switcher?.Dispose();
+        Updates.Dispose();
     }
 
     private async Task ConnectAsync(Config config)
@@ -153,6 +160,7 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
         Log.Write("Config reloaded");
         Config = config;
         IsTrayIconVisible = config.ShowTrayIcon;
+        Updates.SetEnabled(config.CheckForUpdates);
         _ = ConnectAsync(config);
         return PipeResponse.Success("Reloaded the config.");
     }

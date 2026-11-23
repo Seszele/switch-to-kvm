@@ -80,10 +80,12 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         _config = current;
         _host = host;
         ShowTrayIcon = current?.ShowTrayIcon ?? true;
+        CheckForUpdates = current?.CheckForUpdates ?? true;
         StartWithWindows = host.StartsWithWindows;
         if (current is not null) ShowSummary(current);
     }
 
+    public Updater Updates => _host.Updates;
     public bool SetupStarted { get; private set; }
     public bool Saved { get; private set; }
 
@@ -129,6 +131,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
 
     [ObservableProperty] public partial bool ShowTrayIcon { get; set; }
     [ObservableProperty] public partial bool StartWithWindows { get; set; }
+    [ObservableProperty] public partial bool CheckForUpdates { get; set; }
     [ObservableProperty] public partial bool IsConfirmingQuit { get; set; }
 
     public void Start()
@@ -256,7 +259,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
                 return;
             }
 
-            _config = new Config(device.VendorId, device.ProductId, monitor.Model, here, away.Value, ShowTrayIcon);
+            _config = new Config(device.VendorId, device.ProductId, monitor.Model, here, away.Value, ShowTrayIcon, CheckForUpdates);
             ShowSummary(_config);
             Step = hereOk ? SetupStep.Confirm : SetupStep.BothComputers;
         }
@@ -348,15 +351,27 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
 
     partial void OnShowTrayIconChanged(bool value)
     {
-        if (_config is null || _config.ShowTrayIcon == value || Step != SetupStep.Overview) return;
+        if (_config is null || _config.ShowTrayIcon == value) return;
+        SaveOverviewSetting(_config with { ShowTrayIcon = value });
+    }
+
+    partial void OnCheckForUpdatesChanged(bool value)
+    {
+        if (_config is null || _config.CheckForUpdates == value) return;
+        SaveOverviewSetting(_config with { CheckForUpdates = value });
+    }
+
+    private void SaveOverviewSetting(Config config)
+    {
+        if (Step != SetupStep.Overview) return;
         try
         {
-            _config = _config with { ShowTrayIcon = value };
-            _host.Save(_config);
+            _config = config;
+            _host.Save(config);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            Log.Write($"Could not save the tray icon setting: {e.Message}");
+            Log.Write($"Could not save the setting: {e.Message}");
         }
     }
 
