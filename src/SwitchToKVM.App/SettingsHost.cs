@@ -25,7 +25,7 @@ public sealed class SettingsHost(Window window, TrayViewModel tray) : ISettingsH
             ? new ScreenArea(screen.Bounds.X, screen.Bounds.Y, screen.Bounds.Width, screen.Bounds.Height)
             : null;
 
-    public void PauseSwitching() => tray.Pause();
+    public void PauseSwitching() => tray.SuspendForSetup();
 
     public void Save(Config config)
     {
@@ -34,4 +34,6 @@ public sealed class SettingsHost(Window window, TrayViewModel tray) : ISettingsH
     }
 
     public void Close() => window.Close();
+
+    public void Quit() => tray.ExitCommand.Execute(null);
 }

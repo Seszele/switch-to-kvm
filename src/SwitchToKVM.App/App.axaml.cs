@@ -83,7 +83,7 @@ public partial class App : Application
         {
             _settings = null;
             settings.Dispose();
-            if (settings.SetupStarted && !settings.Saved) tray.Resume();
+            if (settings.SetupStarted && !settings.Saved) tray.ResumeAfterSetup();
         };
         _settings = window;
 

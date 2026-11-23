@@ -10,4 +10,5 @@ public interface ISettingsHost
     void PauseSwitching();
     void Save(Config config);
     void Close();
+    void Quit();
 }

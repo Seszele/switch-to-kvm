@@ -12,8 +12,6 @@ public static class SetupText
     public const string ScreenDidntSwitchHint = "Press the button on your USB switch again to come back here, then we'll look at why.";
     public const string SwitchingBack = "Switching back...";
 
-    public const string ChooseInputFirst = "Choose an input first.";
-    public const string TryOneFirst = "Choose an input to try first.";
 
     public static readonly SetupProblem NoMonitor = new(
         "No monitor found",

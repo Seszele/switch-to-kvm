@@ -76,6 +76,12 @@
             <Setter Property="FontSize" Value="14" />
         </Style>
 
+        <Style Selector="Button.accent:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource LavenderBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
+        </Style>
+
         <Style Selector="ProgressBar">
             <Setter Property="Background" Value="{StaticResource LavenderBrush}" />
             <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
@@ -134,10 +140,25 @@
                     </StackPanel>
                 </Border>
             </StackPanel>
-            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-                <Button Content="Set up again" Command="{Binding StartSetupCommand}" />
-                <Button Content="Close" Classes="accent" Command="{Binding CloseCommand}" />
-            </StackPanel>
+            <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto" IsVisible="{Binding !IsConfirmingQuit}">
+                <Button Content="Quit" Command="{Binding AskQuitCommand}" />
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                    <Button Content="Set up again" Command="{Binding StartSetupCommand}" />
+                    <Button Content="Close" Classes="accent" Command="{Binding CloseCommand}" />
+                </StackPanel>
+            </Grid>
+            <Border Grid.Row="2" Classes="peach" Padding="18,14" IsVisible="{Binding IsConfirmingQuit}">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                    <StackPanel Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Classes="value" Text="Quit" Foreground="{StaticResource PeachTextBrush}" />
+                        <TextBlock Classes="body" Text="Are you sure?" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Button Content="Keep running" Command="{Binding CancelQuitCommand}" />
+                        <Button Content="Quit" Classes="accent" Command="{Binding QuitCommand}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
         </Grid>
 
         <StackPanel IsVisible="{Binding IsLoading}" VerticalAlignment="Center" Spacing="14">
@@ -200,7 +221,7 @@
             </StackPanel>
         </Grid>
 
-        <Grid RowDefinitions="Auto,*,Auto,Auto" IsVisible="{Binding IsInput}">
+        <Grid RowDefinitions="Auto,*,Auto" IsVisible="{Binding IsInput}">
             <StackPanel Spacing="6">
                 <TextBlock Classes="title" Text="Where's your other computer plugged in?" />
                 <TextBlock Classes="body muted">
@@ -218,12 +239,7 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <TextBlock Grid.Row="2" Classes="body" Margin="0,0,0,16"
-                       Text="{Binding InputMessage}"
-                       Foreground="{StaticResource PeachTextBrush}"
-                       IsVisible="{Binding InputMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
-
-            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
                 <Button Content="Cancel" Command="{Binding CloseCommand}" />
                 <Button Content="Next" Classes="accent" Command="{Binding UseSelectedInputCommand}" />
             </StackPanel>
@@ -299,9 +315,8 @@
 
             <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
                 <Button Content="Cancel" Command="{Binding CloseCommand}" IsEnabled="{Binding !IsTrying}" />
-                <Button Content="Try it" Command="{Binding TryInputCommand}" IsEnabled="{Binding !IsTrying}" />
-                <Button Content="Use this one" Classes="accent" Command="{Binding UseTriedInputCommand}"
-                        IsEnabled="{Binding !IsTrying}" />
+                <Button Content="Try it" Command="{Binding TryInputCommand}" />
+                <Button Content="Use this one" Classes="accent" Command="{Binding UseTriedInputCommand}" />
             </StackPanel>
         </Grid>
 

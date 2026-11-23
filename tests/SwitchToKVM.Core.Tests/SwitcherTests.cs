@@ -26,6 +26,15 @@ public class SwitcherTests
     }
 
     [Fact]
+    public void PausedIgnoresTheDeviceButStillSwitchesOnRequest()
+    {
+        using var switcher = new Switcher(_watcher, () => _monitor, Here, Away, TimeSpan.Zero) { Paused = true };
+        _watcher.Set(false);
+        switcher.Switch(toHere: false);
+        Assert.Equal([Away], _monitor.Inputs);
+    }
+
+    [Fact]
     public void DoesNothingAtStartup()
     {
         using var switcher = new Switcher(_watcher, () => _monitor, Here, Away, TimeSpan.Zero);

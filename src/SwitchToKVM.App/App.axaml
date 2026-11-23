@@ -45,6 +45,9 @@
                     <NativeMenu>
                         <NativeMenuItem Header="{Binding Status}" IsEnabled="False" />
                         <NativeMenuItemSeparator />
+                        <NativeMenuItem Header="{Binding SwitchHeader}" Command="{Binding SwitchInputCommand}" />
+                        <NativeMenuItem Header="{Binding PauseHeader}" Command="{Binding TogglePauseCommand}" />
+                        <NativeMenuItemSeparator />
                         <NativeMenuItem Header="Settings..." Command="{Binding OpenSettingsCommand}" />
                         <NativeMenuItem Header="Open log" Command="{Binding OpenLogCommand}" />
                         <NativeMenuItem Header="Exit" Command="{Binding ExitCommand}" />

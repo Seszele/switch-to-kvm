@@ -5,10 +5,12 @@
   #define SourceDir "..\artifacts\publish"
 #endif
 
+#define AppGuid "2984A483-6692-4021-8AD0-11CAFC0056CF"
 #define RunKey "Software\Microsoft\Windows\CurrentVersion\Run"
+#define UninstallKey "Software\Microsoft\Windows\CurrentVersion\Uninstall\{" + AppGuid + "}_is1"
 
 [Setup]
-AppId={{2984A483-6692-4021-8AD0-11CAFC0056CF}
+AppId={{{#AppGuid}}
 AppName=SwitchToKVM
 AppVersion={#AppVersion}
 AppPublisher=SwitchToKVM
@@ -28,7 +30,7 @@ SolidCompression=yes
 ChangesEnvironment=yes
 
 [Tasks]
-Name: "startup"; Description: "Start SwitchToKVM when I sign in"
+Name: "startup"; Description: "Start SwitchToKVM when I sign in"; Check: not IsUpgrade
 Name: "addtopath"; Description: "Add the stkvm command-line tool to PATH"; Flags: unchecked
 
 [Files]
@@ -49,6 +51,11 @@ Filename: "{app}\stkvm.exe"; Parameters: "quit"; Flags: runhidden; RunOnceId: "Q
 [Code]
 const
   EnvironmentKey = 'Environment';
+
+function IsUpgrade: Boolean;
+begin
+  Result := RegKeyExists(HKCU, '{#UninstallKey}');
+end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 var

@@ -103,17 +103,22 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     [ObservableProperty] public partial SetupProblem? Problem { get; set; }
 
     [ObservableProperty] public partial IReadOnlyList<MonitorOption> Monitors { get; set; } = [];
-    [ObservableProperty] public partial MonitorOption? SelectedMonitor { get; set; }
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(UseSelectedMonitorCommand))]
+    public partial MonitorOption? SelectedMonitor { get; set; }
 
     [ObservableProperty] public partial string HereName { get; set; } = "";
     [ObservableProperty] public partial IReadOnlyList<InputOption> AwayOptions { get; set; } = [];
-    [ObservableProperty] public partial InputOption? SelectedAway { get; set; }
-    [ObservableProperty] public partial string? InputMessage { get; set; }
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(UseSelectedInputCommand), nameof(TryInputCommand), nameof(UseTriedInputCommand))]
+    public partial InputOption? SelectedAway { get; set; }
 
     [ObservableProperty] public partial string DeviceMessage { get; set; } = "";
     [ObservableProperty] public partial string DeviceHint { get; set; } = "";
 
-    [ObservableProperty] public partial bool IsTrying { get; set; }
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(UseTriedInputCommand))]
+    public partial bool IsTrying { get; set; }
     [ObservableProperty] public partial string? TryMessage { get; set; }
 
     [ObservableProperty] public partial string SummaryMonitor { get; set; } = "";
@@ -122,6 +127,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
 
     [ObservableProperty] public partial bool ShowTrayIcon { get; set; }
     [ObservableProperty] public partial bool StartWithWindows { get; set; }
+    [ObservableProperty] public partial bool IsConfirmingQuit { get; set; }
 
     public void Start()
     {
@@ -177,7 +183,9 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         Step = SetupStep.Monitor;
     }
 
-    [RelayCommand]
+    private bool HasSelectedMonitor() => SelectedMonitor is not null;
+
+    [RelayCommand(CanExecute = nameof(HasSelectedMonitor))]
     private void UseSelectedMonitor()
     {
         if (SelectedMonitor is not null) ChooseMonitor(SelectedMonitor);
@@ -197,7 +205,6 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         _connection = null;
         HereName = InputNames.Get(here);
         AwayOptions = option.Inputs.Where(i => i != here).Select(i => new InputOption(i)).ToList();
-        InputMessage = null;
 
         if (AwayOptions.Count == 1)
         {
@@ -210,16 +217,12 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         Step = SetupStep.Input;
     }
 
-    [RelayCommand]
-    private void UseSelectedInput()
-    {
-        if (SelectedAway is null)
-        {
-            InputMessage = SetupText.ChooseInputFirst;
-            return;
-        }
-        _ = LearnDeviceAsync();
-    }
+    private bool HasSelectedAway() => SelectedAway is not null;
+
+    private bool CanUseTriedInput() => SelectedAway is not null && !IsTrying;
+
+    [RelayCommand(CanExecute = nameof(HasSelectedAway))]
+    private void UseSelectedInput() => _ = LearnDeviceAsync();
 
     private async Task LearnDeviceAsync()
     {
@@ -284,15 +287,10 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         Step = SetupStep.Troubleshoot;
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HasSelectedAway))]
     private async Task TryInputAsync()
     {
-        if (SelectedAway is not { } input)
-        {
-            TryMessage = SetupText.TryOneFirst;
-            return;
-        }
-        if (_monitor is null) return;
+        if (SelectedAway is not { } input || _monitor is null) return;
 
         var connection = Connection();
         IsTrying = true;
@@ -314,16 +312,8 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         TryMessage = switched ? SetupText.Tried(input.Name) : SetupText.TryDidntSwitch(input.Name);
     }
 
-    [RelayCommand]
-    private void UseTriedInput()
-    {
-        if (SelectedAway is null)
-        {
-            TryMessage = SetupText.TryOneFirst;
-            return;
-        }
-        _ = LearnDeviceAsync();
-    }
+    [RelayCommand(CanExecute = nameof(CanUseTriedInput))]
+    private void UseTriedInput() => _ = LearnDeviceAsync();
 
     [RelayCommand]
     private void Finish()
@@ -346,6 +336,15 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
 
     [RelayCommand]
     private void Close() => _host.Close();
+
+    [RelayCommand]
+    private void AskQuit() => IsConfirmingQuit = true;
+
+    [RelayCommand]
+    private void CancelQuit() => IsConfirmingQuit = false;
+
+    [RelayCommand]
+    private void Quit() => _host.Quit();
 
     partial void OnShowTrayIconChanged(bool value)
     {

@@ -22,6 +22,11 @@ public partial class PreviewViewModel : ViewModelBase
         [
             Scenario("Overview", Configured, vm => vm.Step = SetupStep.Overview),
             Scenario("Overview, tray icon hidden", Configured with { ShowTrayIcon = false }, vm => vm.Step = SetupStep.Overview),
+            Scenario("Overview, confirming quit", Configured, vm =>
+            {
+                vm.Step = SetupStep.Overview;
+                vm.IsConfirmingQuit = true;
+            }),
             Scenario("Overview, long names", new Config(0x3434, 0xD030, "U2723QE-EXTRA-LONG-MODEL", 0x1B, 0x12),
                 vm => vm.Step = SetupStep.Overview),
             Scenario("Loading", null, vm => vm.Step = SetupStep.Loading),
@@ -39,12 +44,6 @@ public partial class PreviewViewModel : ViewModelBase
             Scenario("Input: three inputs", null, vm =>
             {
                 Inputs(vm, 0x0F, 0x03, 0x11, 0x12);
-                vm.Step = SetupStep.Input;
-            }),
-            Scenario("Input: nothing chosen", null, vm =>
-            {
-                Inputs(vm, 0x0F, 0x03, 0x11);
-                vm.InputMessage = SetupText.ChooseInputFirst;
                 vm.Step = SetupStep.Input;
             }),
             Scenario("Device: press the switch", null, vm => Device(vm, SetupText.PressSwitch, SetupText.PressSwitchHint)),
@@ -128,6 +127,7 @@ public partial class PreviewViewModel : ViewModelBase
         public void PauseSwitching() { }
         public void Save(Config config) { }
         public void Close() { }
+        public void Quit() { }
     }
 
     private sealed class PreviewMonitor(string model) : IMonitor

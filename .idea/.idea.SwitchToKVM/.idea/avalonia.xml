@@ -4,6 +4,7 @@
     <option name="projectPerEditor">
       <map>
         <entry key="src/SwitchToKVM.App/App.axaml" value="src/SwitchToKVM.App/SwitchToKVM.App.csproj" />
+        <entry key="src/SwitchToKVM.App/Views/SettingsView.axaml" value="src/SwitchToKVM.App/SwitchToKVM.App.csproj" />
       </map>
     </option>
   </component>

@@ -22,6 +22,8 @@ public sealed class Switcher : IDisposable
 
     public bool HasMonitor => _monitor.HasMonitor;
 
+    public bool Paused { get; set; }
+
     public bool Connect()
     {
         _monitor.Connect();
@@ -45,5 +47,8 @@ public sealed class Switcher : IDisposable
         return ok;
     }
 
-    private void OnPresenceChanged(bool present) => Switch(present);
+    private void OnPresenceChanged(bool present)
+    {
+        if (!Paused) Switch(present);
+    }
 }

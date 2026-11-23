@@ -25,6 +25,17 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
     [ObservableProperty] public partial string Status { get; set; } = "Starting...";
     [ObservableProperty] public partial bool IsTrayIconVisible { get; set; } = true;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PauseHeader))]
+    public partial bool IsPaused { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SwitchHeader))]
+    public partial bool ShowsOtherComputer { get; set; }
+
+    public string PauseHeader => IsPaused ? "Resume automatic switching" : "Pause automatic switching";
+    public string SwitchHeader => ShowsOtherComputer ? "Switch back to this computer" : "Switch to the other computer";
+
     public Config? Config { get; private set; }
 
     public void Start()
@@ -73,18 +84,19 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
         var switchingChanged = Config is null || Config with { ShowTrayIcon = config.ShowTrayIcon } != config;
         Config = config;
         IsTrayIconVisible = config.ShowTrayIcon;
-        if (switchingChanged) _ = ConnectAsync(config);
+        if (!switchingChanged) return;
+        IsPaused = false;
+        _ = ConnectAsync(config);
     }
 
-    public void Pause()
+    public void SuspendForSetup()
     {
         _generation++;
-        _switcher?.Dispose();
-        _switcher = null;
+        SetSwitcher(null);
         Status = "Paused during setup";
     }
 
-    public void Resume()
+    public void ResumeAfterSetup()
     {
         if (Config is null)
             Status = "Not set up yet";
@@ -101,8 +113,7 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
     private async Task ConnectAsync(Config config)
     {
         var generation = ++_generation;
-        _switcher?.Dispose();
-        _switcher = null;
+        SetSwitcher(null);
         Status = $"Looking for {config.MonitorModel}...";
 
         try
@@ -120,8 +131,9 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
                 return;
             }
 
-            _switcher = switcher;
-            Status = switcher.HasMonitor ? $"Watching · {config.MonitorModel}" : $"{config.MonitorModel} not found";
+            switcher.Paused = IsPaused;
+            SetSwitcher(switcher);
+            Status = switcher.HasMonitor ? WatchingStatus(config) : $"{config.MonitorModel} not found";
             Log.Write(switcher.HasMonitor ? $"Found {config.MonitorModel}" : $"{config.MonitorModel} not found");
         }
         catch (Exception e)
@@ -143,6 +155,24 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
         IsTrayIconVisible = config.ShowTrayIcon;
         _ = ConnectAsync(config);
         return PipeResponse.Success("Reloaded the config.");
+    }
+
+    private void SetSwitcher(Switcher? switcher)
+    {
+        _switcher?.Dispose();
+        _switcher = switcher;
+        SwitchInputCommand.NotifyCanExecuteChanged();
+    }
+
+    private string WatchingStatus(Config config) =>
+        IsPaused ? $"Paused · {config.MonitorModel}" : $"Watching · {config.MonitorModel}";
+
+    partial void OnIsPausedChanged(bool value)
+    {
+        Log.Write(value ? "Paused" : "Resumed");
+        if (_switcher is not { } switcher) return;
+        switcher.Paused = value;
+        if (switcher.HasMonitor && Config is { } config) Status = WatchingStatus(config);
     }
 
     private async Task<PipeResponse> SwitchAsync(bool toHere)
@@ -203,8 +233,20 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
         Log.Write($"Switch to 0x{input:X2}: {(ok ? "OK" : "FAILED")}");
         var name = InputNames.Get(input);
         var status = ok ? $"Switched to {name} at {DateTime.Now:HH:mm}" : $"Switch to {name} failed";
-        Dispatcher.UIThread.Post(() => Status = status);
+        Dispatcher.UIThread.Post(() =>
+        {
+            Status = status;
+            if (ok) ShowsOtherComputer = input == Config?.AwayInput;
+        });
     }
+
+    private bool CanSwitch() => _switcher is not null;
+
+    [RelayCommand(CanExecute = nameof(CanSwitch))]
+    private async Task SwitchInputAsync() => await SwitchAsync(toHere: ShowsOtherComputer);
+
+    [RelayCommand]
+    private void TogglePause() => IsPaused = !IsPaused;
 
     [RelayCommand]
     private void OpenSettings() => openSettings();
