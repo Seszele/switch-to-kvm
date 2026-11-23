@@ -25,7 +25,11 @@ Why not just buy a KVM switch? Good ones for high resolution and high refresh ra
 
 ## Install
 
-Grab the installer from [Releases](https://github.com/Seszele/switch-to-kvm/releases/latest).
+```
+winget install SwitchToKVM.SwitchToKVM
+```
+
+Or grab the installer from [Releases](https://github.com/Seszele/switch-to-kvm/releases/latest).
 
 ## Setup
 

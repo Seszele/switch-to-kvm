@@ -44,7 +44,7 @@ Root: HKCU; Subkey: "{#RunKey}"; ValueType: string; ValueName: "SwitchToKVM"; Va
 
 [Run]
 Filename: "{app}\SwitchToKVM.exe"; Description: "Start SwitchToKVM now"; Flags: nowait postinstall skipifsilent
-Filename: "{app}\SwitchToKVM.exe"; Flags: nowait; Check: RestartRequested
+Filename: "{app}\SwitchToKVM.exe"; Flags: nowait; Check: StartSilently
 
 [UninstallRun]
 Filename: "{app}\stkvm.exe"; Parameters: "quit"; Flags: runhidden; RunOnceId: "QuitApp"
@@ -52,6 +52,9 @@ Filename: "{app}\stkvm.exe"; Parameters: "quit"; Flags: runhidden; RunOnceId: "Q
 [Code]
 const
   EnvironmentKey = 'Environment';
+
+var
+  WasUpgrade, WasRunning: Boolean;
 
 function RestartRequested: Boolean;
 begin
@@ -63,11 +66,23 @@ begin
   Result := RegKeyExists(HKCU, '{#UninstallKey}');
 end;
 
+function InitializeSetup: Boolean;
+begin
+  WasUpgrade := IsUpgrade;
+  Result := True;
+end;
+
+function StartSilently: Boolean;
+begin
+  Result := WizardSilent and (RestartRequested or not WasUpgrade or WasRunning);
+end;
+
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
   Cli: String;
   ResultCode: Integer;
 begin
+  WasRunning := CheckForMutexes('Local\SwitchToKVM');
   Cli := ExpandConstant('{app}\stkvm.exe');
   if FileExists(Cli) then
     Exec(Cli, 'quit', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
