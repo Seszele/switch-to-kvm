@@ -13,11 +13,13 @@ sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
+#if DEBUG
         if (args.Contains(App.PreviewArgument))
         {
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
             return;
         }
+#endif
 
         using var instance = new Mutex(true, @"Local\SwitchToKVM", out var isFirstInstance);
         if (!isFirstInstance)

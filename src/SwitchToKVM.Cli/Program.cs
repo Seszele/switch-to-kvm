@@ -130,9 +130,13 @@ static int Quit()
         return 0;
     }
 
+    var session = Process.GetCurrentProcess().SessionId;
     foreach (var process in Process.GetProcessesByName("SwitchToKVM"))
     {
-        using (process) process.WaitForExit(TimeSpan.FromSeconds(10));
+        using (process)
+        {
+            if (process.SessionId == session) process.WaitForExit(TimeSpan.FromSeconds(10));
+        }
     }
     Console.WriteLine(response.Message);
     return 0;
@@ -155,9 +159,9 @@ static bool TryLoadConfig(out Config config)
         config = loaded;
         return true;
     }
-    catch (JsonException e)
+    catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException)
     {
-        Console.Error.WriteLine($"Invalid config at {AppPaths.Config}: {e.Message}");
+        Console.Error.WriteLine($"Can't read the config at {AppPaths.Config}: {e.Message}");
         return false;
     }
 }

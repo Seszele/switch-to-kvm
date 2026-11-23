@@ -45,7 +45,7 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
         Log.Write("Started");
         if (!TryLoadConfig(out var config, out _))
         {
-            Status = "Config file is invalid";
+            Status = "Can't read the config file, see log";
             Updates.Start(true);
             return;
         }
@@ -153,7 +153,7 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
     private PipeResponse Reload()
     {
         if (!TryLoadConfig(out var config, out var error))
-            return PipeResponse.Error($"The config file is invalid, keeping the current settings. {error}");
+            return PipeResponse.Error($"Can't read the config file, keeping the current settings. {error}");
         if (config is null)
             return PipeResponse.Error($"There's no config file at {AppPaths.Config}.");
 
@@ -217,10 +217,10 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
             config = ConfigFile.Load(AppPaths.Config);
             return true;
         }
-        catch (JsonException e)
+        catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException)
         {
             error = e.Message;
-            Log.Write($"Invalid config: {e.Message}");
+            Log.Write($"Can't read config: {e.Message}");
             return false;
         }
     }
@@ -231,7 +231,8 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
             new WindowsDeviceWatcher(config.VendorId, config.ProductId),
             () => WindowsMonitor.Find(config.MonitorModel),
             config.HereInput,
-            config.AwayInput);
+            config.AwayInput,
+            paused: true);
         switcher.Switched += OnSwitched;
         return switcher;
     }

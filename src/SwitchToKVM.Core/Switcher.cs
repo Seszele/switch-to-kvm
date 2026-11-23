@@ -10,11 +10,12 @@ public sealed class Switcher : IDisposable
     private readonly byte _here;
     private readonly byte _away;
 
-    public Switcher(IDeviceWatcher watcher, Func<IMonitor?> findMonitor, byte here, byte away, TimeSpan? retryDelay = null)
+    public Switcher(IDeviceWatcher watcher, Func<IMonitor?> findMonitor, byte here, byte away, TimeSpan? retryDelay = null, bool paused = false)
     {
         _watcher = watcher;
         _here = here;
         _away = away;
+        Paused = paused;
         _monitor = new MonitorConnection(findMonitor, retryDelay ?? TimeSpan.FromSeconds(1));
         _monitor.Connect();
         _watcher.PresenceChanged += OnPresenceChanged;

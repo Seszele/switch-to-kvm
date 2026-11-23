@@ -111,13 +111,19 @@ public sealed partial class Updater : ViewModelBase, IDisposable
         {
             var installer = await GitHubUpdates.DownloadInstallerAsync(_http, update);
             Log.Write($"Installing {update.Version}");
-            Process.Start(new ProcessStartInfo(installer, "/SILENT /RESTARTAPP") { UseShellExecute = false });
+            using var process = Process.Start(new ProcessStartInfo(installer, "/SILENT /RESTARTAPP") { UseShellExecute = false });
+            if (process is null) return;
+            await process.WaitForExitAsync();
+            Log.Write($"The installer closed without updating (exit code {process.ExitCode})");
         }
         catch (Exception e) when (e is HttpRequestException or TaskCanceledException or IOException
                                        or UnauthorizedAccessException or InvalidDataException or Win32Exception)
         {
             Log.Write($"Update failed: {e.Message}");
             Error = "The update didn't install. Try again later, or download it from GitHub.";
+        }
+        finally
+        {
             IsInstalling = false;
         }
     }
