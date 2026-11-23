@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
       <ProjectReference Include="..\SwitchToKVM.Core\SwitchToKVM.Core.csproj" />
@@ -9,6 +9,10 @@
         <TargetFramework>net11.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <AssemblyName>stkvm</AssemblyName>
+        <RootNamespace>SwitchToKVM.Cli</RootNamespace>
+        <PublishAot>true</PublishAot>
+        <InvariantGlobalization>true</InvariantGlobalization>
     </PropertyGroup>
 
 </Project>

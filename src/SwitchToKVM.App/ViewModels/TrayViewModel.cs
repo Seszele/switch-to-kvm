@@ -23,6 +23,7 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
     private int _generation;
 
     [ObservableProperty] public partial string Status { get; set; } = "Starting...";
+    [ObservableProperty] public partial bool IsTrayIconVisible { get; set; } = true;
 
     public Config? Config { get; private set; }
 
@@ -36,6 +37,7 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
         }
 
         Config = config;
+        IsTrayIconVisible = config?.ShowTrayIcon ?? true;
         if (config is null)
             Status = "Not set up yet";
         else
@@ -57,16 +59,21 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
                 return await SwitchAsync(toHere: true);
             case AppPipe.Away:
                 return await SwitchAsync(toHere: false);
+            case AppPipe.Quit:
+                _ = Task.Delay(TimeSpan.FromMilliseconds(300)).ContinueWith(_ => Dispatcher.UIThread.Post(exit));
+                return PipeResponse.Success("SwitchToKVM is quitting.");
             default:
-                return PipeResponse.Error($"Unknown command '{command}'. The app understands: status, here, away, reload, settings.");
+                return PipeResponse.Error($"Unknown command '{command}'. The app understands: status, here, away, reload, settings, quit.");
         }
     }
 
     public void Apply(Config config)
     {
         Log.Write("Settings saved");
+        var switchingChanged = Config is null || Config with { ShowTrayIcon = config.ShowTrayIcon } != config;
         Config = config;
-        _ = ConnectAsync(config);
+        IsTrayIconVisible = config.ShowTrayIcon;
+        if (switchingChanged) _ = ConnectAsync(config);
     }
 
     public void Pause()
@@ -133,6 +140,7 @@ public partial class TrayViewModel(Action openSettings, Action exit) : ViewModel
 
         Log.Write("Config reloaded");
         Config = config;
+        IsTrayIconVisible = config.ShowTrayIcon;
         _ = ConnectAsync(config);
         return PipeResponse.Success("Reloaded the config.");
     }

@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using SwitchToKVM.Core;
 using SwitchToKVM.Core.Configuration;
@@ -6,9 +8,12 @@ using SwitchToKVM.Core.Ipc;
 using SwitchToKVM.Core.Monitors.Windows;
 using SwitchToKVM.Core.Usb.Windows;
 
+Console.OutputEncoding = Encoding.UTF8;
+
 return args switch
 {
     [AppPipe.Status or AppPipe.Here or AppPipe.Away or AppPipe.Reload or AppPipe.Settings] => SendToApp(args[0]),
+    [AppPipe.Quit] => Quit(),
     ["monitors"] => ListMonitors(),
     ["set", var model, var value] => SetInput(model, value),
     ["watch", var vendorId, var productId] => Watch(vendorId, productId),
@@ -116,6 +121,23 @@ static int SendToApp(string command)
     return response.Ok ? 0 : 1;
 }
 
+static int Quit()
+{
+    var response = Send(AppPipe.Quit, TimeSpan.FromSeconds(1));
+    if (response is null)
+    {
+        Console.WriteLine("The SwitchToKVM app isn't running.");
+        return 0;
+    }
+
+    foreach (var process in Process.GetProcessesByName("SwitchToKVM"))
+    {
+        using (process) process.WaitForExit(TimeSpan.FromSeconds(10));
+    }
+    Console.WriteLine(response.Message);
+    return 0;
+}
+
 static PipeResponse? Send(string command, TimeSpan timeout) =>
     PipeClient.SendAsync(AppPipe.Name, command, timeout).GetAwaiter().GetResult();
 
@@ -166,6 +188,7 @@ static int Usage()
           away           switch the monitor to the other computer now
           reload         re-read the config file
           settings       open the settings window
+          quit           exit the app
 
         Config:
           config

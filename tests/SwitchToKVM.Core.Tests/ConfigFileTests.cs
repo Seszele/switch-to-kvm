@@ -36,6 +36,21 @@ public sealed class ConfigFileTests : IDisposable
     }
 
     [Fact]
+    public void OlderFileWithoutTrayIconSettingShowsIt()
+    {
+        Directory.CreateDirectory(_directory);
+        File.WriteAllText(ConfigPath, """{ "vendorId": "3434", "productId": "D030", "monitorModel": "PL2770QS", "hereInput": "0F", "awayInput": "11" }""");
+        Assert.True(ConfigFile.Load(ConfigPath)!.ShowTrayIcon);
+    }
+
+    [Fact]
+    public void SavesHiddenTrayIcon()
+    {
+        ConfigFile.Save(Sample with { ShowTrayIcon = false }, ConfigPath);
+        Assert.False(ConfigFile.Load(ConfigPath)!.ShowTrayIcon);
+    }
+
+    [Fact]
     public void MissingFileGivesNull() => Assert.Null(ConfigFile.Load(ConfigPath));
 
     [Theory]

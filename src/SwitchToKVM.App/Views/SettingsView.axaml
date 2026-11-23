@@ -113,16 +113,27 @@
                 <TextBlock Classes="body muted"
                            Text="When you press your USB switch, the monitor follows your keyboard and mouse." />
             </StackPanel>
-            <Border Grid.Row="1" Classes="card" Margin="0,20" VerticalAlignment="Top">
-                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="20" RowSpacing="12">
-                    <TextBlock Classes="label" Text="Monitor" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1" Classes="value" Text="{Binding SummaryMonitor}" />
-                    <TextBlock Grid.Row="1" Classes="label" Text="This computer" VerticalAlignment="Center" />
-                    <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding SummaryHere}" />
-                    <TextBlock Grid.Row="2" Classes="label" Text="Other computer" VerticalAlignment="Center" />
-                    <TextBlock Grid.Row="2" Grid.Column="1" Classes="value" Text="{Binding SummaryAway}" />
-                </Grid>
-            </Border>
+            <StackPanel Grid.Row="1" Margin="0,20" Spacing="12" VerticalAlignment="Top">
+                <Border Classes="card">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="20" RowSpacing="12">
+                        <TextBlock Classes="label" Text="Monitor" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Classes="value" Text="{Binding SummaryMonitor}" />
+                        <TextBlock Grid.Row="1" Classes="label" Text="This computer" VerticalAlignment="Center" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Classes="value" Text="{Binding SummaryHere}" />
+                        <TextBlock Grid.Row="2" Classes="label" Text="Other computer" VerticalAlignment="Center" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Classes="value" Text="{Binding SummaryAway}" />
+                    </Grid>
+                </Border>
+                <Border Classes="card" Padding="18,10">
+                    <StackPanel Spacing="2">
+                        <CheckBox Content="Start with Windows" IsChecked="{Binding StartWithWindows}" />
+                        <CheckBox Content="Show the icon in the system tray" IsChecked="{Binding ShowTrayIcon}" />
+                        <TextBlock Classes="label" TextWrapping="Wrap" Margin="28,0,0,4"
+                                   IsVisible="{Binding !ShowTrayIcon}"
+                                   Text="To get back here, open SwitchToKVM again from the Start menu." />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
                 <Button Content="Set up again" Command="{Binding StartSetupCommand}" />
                 <Button Content="Close" Classes="accent" Command="{Binding CloseCommand}" />

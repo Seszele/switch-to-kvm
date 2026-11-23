@@ -39,6 +39,7 @@
             <TrayIcon x:DataType="vm:TrayViewModel"
                       Icon="/Assets/icon.ico"
                       ToolTipText="SwitchToKVM"
+                      IsVisible="{Binding IsTrayIconVisible}"
                       Command="{Binding OpenSettingsCommand}">
                 <TrayIcon.Menu>
                     <NativeMenu>

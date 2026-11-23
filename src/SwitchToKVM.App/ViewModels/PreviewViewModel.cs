@@ -21,6 +21,7 @@ public partial class PreviewViewModel : ViewModelBase
         Scenarios =
         [
             Scenario("Overview", Configured, vm => vm.Step = SetupStep.Overview),
+            Scenario("Overview, tray icon hidden", Configured with { ShowTrayIcon = false }, vm => vm.Step = SetupStep.Overview),
             Scenario("Overview, long names", new Config(0x3434, 0xD030, "U2723QE-EXTRA-LONG-MODEL", 0x1B, 0x12),
                 vm => vm.Step = SetupStep.Overview),
             Scenario("Loading", null, vm => vm.Step = SetupStep.Loading),
@@ -88,7 +89,7 @@ public partial class PreviewViewModel : ViewModelBase
 
     private static PreviewScenario Scenario(string name, Config? config, Action<SettingsViewModel> arrange)
     {
-        var vm = new SettingsViewModel(config, () => null, () => { }, _ => { }, () => { });
+        var vm = new SettingsViewModel(config, new PreviewHost());
         arrange(vm);
         return new PreviewScenario(name, vm);
     }
@@ -118,6 +119,15 @@ public partial class PreviewViewModel : ViewModelBase
         vm.DeviceMessage = message;
         vm.DeviceHint = hint;
         vm.Step = SetupStep.Device;
+    }
+
+    private sealed class PreviewHost : ISettingsHost
+    {
+        public bool StartsWithWindows { get; set; } = true;
+        public ScreenArea? CurrentScreen() => null;
+        public void PauseSwitching() { }
+        public void Save(Config config) { }
+        public void Close() { }
     }
 
     private sealed class PreviewMonitor(string model) : IMonitor

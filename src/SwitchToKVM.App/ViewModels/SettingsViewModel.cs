@@ -66,10 +66,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
 {
     private static readonly TimeSpan TryDuration = TimeSpan.FromSeconds(10);
 
-    private readonly Func<ScreenArea?> _currentScreen;
-    private readonly Action _pause;
-    private readonly Action<Config> _save;
-    private readonly Action _close;
+    private readonly ISettingsHost _host;
     private readonly CancellationTokenSource _cancel = new();
     private List<MonitorOption> _monitors = [];
     private MonitorOption? _monitor;
@@ -77,13 +74,12 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     private byte _here;
     private Config? _config;
 
-    public SettingsViewModel(Config? current, Func<ScreenArea?> currentScreen, Action pause, Action<Config> save, Action close)
+    public SettingsViewModel(Config? current, ISettingsHost host)
     {
         _config = current;
-        _currentScreen = currentScreen;
-        _pause = pause;
-        _save = save;
-        _close = close;
+        _host = host;
+        ShowTrayIcon = current?.ShowTrayIcon ?? true;
+        StartWithWindows = host.StartsWithWindows;
         if (current is not null) ShowSummary(current);
     }
 
@@ -124,6 +120,9 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
     [ObservableProperty] public partial string SummaryHere { get; set; } = "";
     [ObservableProperty] public partial string SummaryAway { get; set; } = "";
 
+    [ObservableProperty] public partial bool ShowTrayIcon { get; set; }
+    [ObservableProperty] public partial bool StartWithWindows { get; set; }
+
     public void Start()
     {
         if (_config is null)
@@ -132,7 +131,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
             Step = SetupStep.Overview;
     }
 
-    public void RefreshCurrentScreen() => MonitorOption.MarkCurrent(Monitors, _currentScreen());
+    public void RefreshCurrentScreen() => MonitorOption.MarkCurrent(Monitors, _host.CurrentScreen());
 
     public void ShowProblem(SetupProblem problem)
     {
@@ -153,7 +152,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         if (!SetupStarted)
         {
             SetupStarted = true;
-            _pause();
+            _host.PauseSwitching();
         }
 
         Step = SetupStep.Loading;
@@ -172,7 +171,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
             return;
         }
 
-        MonitorOption.Annotate(_monitors, _currentScreen());
+        MonitorOption.Annotate(_monitors, _host.CurrentScreen());
         Monitors = _monitors;
         SelectedMonitor = null;
         Step = SetupStep.Monitor;
@@ -257,7 +256,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
                 return;
             }
 
-            _config = new Config(device.VendorId, device.ProductId, monitor.Model, here, away.Value);
+            _config = new Config(device.VendorId, device.ProductId, monitor.Model, here, away.Value, ShowTrayIcon);
             ShowSummary(_config);
             Step = SetupStep.Confirm;
         }
@@ -332,7 +331,7 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         if (_config is null) return;
         try
         {
-            _save(_config);
+            _host.Save(_config);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
@@ -342,11 +341,38 @@ public partial class SettingsViewModel : ViewModelBase, IDisposable
         }
 
         Saved = true;
-        _close();
+        _host.Close();
     }
 
     [RelayCommand]
-    private void Close() => _close();
+    private void Close() => _host.Close();
+
+    partial void OnShowTrayIconChanged(bool value)
+    {
+        if (_config is null || _config.ShowTrayIcon == value || Step != SetupStep.Overview) return;
+        try
+        {
+            _config = _config with { ShowTrayIcon = value };
+            _host.Save(_config);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Log.Write($"Could not save the tray icon setting: {e.Message}");
+        }
+    }
+
+    partial void OnStartWithWindowsChanged(bool value)
+    {
+        if (value == _host.StartsWithWindows) return;
+        try
+        {
+            _host.StartsWithWindows = value;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            Log.Write($"Could not change start with Windows: {e.Message}");
+        }
+    }
 
     private MonitorConnection Connection()
     {

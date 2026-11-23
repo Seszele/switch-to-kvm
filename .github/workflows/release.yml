@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 11.0.x
+
+      - name: Test
+        run: dotnet test -c Release
+
+      - name: Pick version
+        id: version
+        run: |
+          if ($env:GITHUB_REF_TYPE -eq 'tag') { $version = $env:GITHUB_REF_NAME.TrimStart('v') }
+          else { $version = "0.0.0-dev.$env:GITHUB_RUN_NUMBER" }
+          "value=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Install Inno Setup
+        run: |
+          if (-not (Get-ChildItem "C:\Program Files*\Inno Setup*\ISCC.exe" -ErrorAction SilentlyContinue)) {
+            choco install innosetup -y --no-progress
+          }
+
+      - name: Build installer and portable zip
+        run: ./installer/build.ps1 -Version ${{ steps.version.outputs.value }}
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: SwitchToKVM-${{ steps.version.outputs.value }}
+          path: |
+            artifacts/*.exe
+            artifacts/*.zip
+            artifacts/symbols/SwitchToKVM.pdb
+            artifacts/symbols/stkvm.pdb
+
+      - name: Create draft release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create $env:GITHUB_REF_NAME
+          artifacts/SwitchToKVM-${{ steps.version.outputs.value }}-setup.exe
+          artifacts/SwitchToKVM-${{ steps.version.outputs.value }}-portable.zip
+          --draft --generate-notes --title "SwitchToKVM ${{ steps.version.outputs.value }}"

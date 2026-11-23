@@ -1,10 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net11.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <LangVersion>15</LangVersion>
+        <AssemblyName>SwitchToKVM</AssemblyName>
+        <RootNamespace>SwitchToKVM.App</RootNamespace>
+        <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+        <PublishAot>true</PublishAot>
+        <InvariantGlobalization>true</InvariantGlobalization>
     </PropertyGroup>
 
     <ItemGroup>

@@ -76,16 +76,7 @@ public partial class App : Application
 
         var tray = _tray!;
         var window = new SettingsWindow();
-        var settings = new SettingsViewModel(
-            tray.Config,
-            () => ScreenOf(window),
-            tray.Pause,
-            config =>
-            {
-                ConfigFile.Save(config, AppPaths.Config);
-                tray.Apply(config);
-            },
-            window.Close);
+        var settings = new SettingsViewModel(tray.Config, new SettingsHost(window, tray));
         window.DataContext = settings;
         window.PositionChanged += (_, _) => settings.RefreshCurrentScreen();
         window.Closed += (_, _) =>
@@ -99,9 +90,4 @@ public partial class App : Application
         window.Show();
         settings.Start();
     }
-
-    private static ScreenArea? ScreenOf(Window window) =>
-        window.Screens.ScreenFromWindow(window) is { } screen
-            ? new ScreenArea(screen.Bounds.X, screen.Bounds.Y, screen.Bounds.Width, screen.Bounds.Height)
-            : null;
 }
