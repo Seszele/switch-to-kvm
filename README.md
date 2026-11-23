@@ -6,7 +6,7 @@
 
 A small Windows tray app that changes your monitor's input when you press your USB switch. With it, a plain USB switch and one monitor work more or less like a KVM.
 
-https://github.com/user-attachments/assets/743548b2-0148-4818-8971-5d359d805bfc
+![Pressing the USB switch changes the monitor input](https://github.com/user-attachments/assets/ac96537d-e803-4cae-9bf1-2a34c1618c67)
 
 ## How it works
 
